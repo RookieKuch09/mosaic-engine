@@ -4,18 +4,10 @@ cmake_minimum_required(VERSION 3.20)
 # Create project
 project(MosaicEngine LANGUAGES CXX)
 
-# Set export compile commands
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-
-# Configure linker
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
-
 # Configure C++ compiler
-set(CMAKE_CXX_COMPILER "gcc")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_BUILD_TYPE Debug)
 
 # Locate all sources
 file(GLOB_RECURSE SOURCES "source/**/*.cpp")
@@ -30,14 +22,10 @@ target_sources(Mosaic PRIVATE ${SOURCES})
 target_include_directories(Mosaic PRIVATE "include" "inline")
 
 # Find all required packages
-find_package(SDL2 REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(SDL3 REQUIRED)
 
 # Link library against required packages
-target_link_libraries(Mosaic PRIVATE SDL2::SDL2)
-target_link_libraries(Mosaic PRIVATE GLEW::GLEW)
-target_link_libraries(Mosaic PRIVATE OpenGL::GL)
+target_link_libraries(Mosaic PRIVATE SDL3::SDL3)
 
 # Clear install directory to avoid stale files
 install(CODE "

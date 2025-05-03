@@ -5,7 +5,7 @@
 #include <algorithm>
 
 template <typename T>
-void EventManager::Subscribe(void* subscriber, std::function<void(const T&)> callback)
+void Mosaic::EventManager::Subscribe(void* subscriber, std::function<void(const T&)> callback)
 {
     auto call = [callback = std::move(callback)](const std::any& event)
     {
@@ -18,7 +18,7 @@ void EventManager::Subscribe(void* subscriber, std::function<void(const T&)> cal
 }
 
 template <typename T, typename TClass>
-void EventManager::Subscribe(TClass* subscriber, void (TClass::*callback)(const T&))
+void Mosaic::EventManager::Subscribe(TClass* subscriber, void (TClass::*callback)(const T&))
 {
     auto call = [subscriber, callback](const std::any& event)
     {
@@ -31,7 +31,7 @@ void EventManager::Subscribe(TClass* subscriber, void (TClass::*callback)(const 
 }
 
 template <typename T>
-void EventManager::Unsubscribe(void* subscriber)
+void Mosaic::EventManager::Unsubscribe(void* subscriber)
 {
     auto condition = [&](const Listener& listener)
     {
@@ -54,7 +54,7 @@ void EventManager::Unsubscribe(void* subscriber)
 }
 
 template <typename T>
-void EventManager::Emit(const T& event)
+void Mosaic::EventManager::Emit(const T& event)
 {
     mEventQueue[typeid(T)].push(event);
 }

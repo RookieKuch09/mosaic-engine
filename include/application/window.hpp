@@ -1,40 +1,50 @@
 #pragma once
 
-#include <GL/glew.h>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-
+#include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 
 #include <string>
 
-struct RendererData;
-
-struct WindowData
+namespace Mosaic
 {
-    SDL_Window* Handle;
-    glm::uvec2 Size;
-    std::string Title;
-    bool Running;
-};
+    class ApplicationData;
 
-class Window
-{
-public:
-    Window(WindowData& surfaceData, RendererData& rendererData);
-    ~Window();
+    class Window
+    {
+    public:
+        Window(ApplicationData& applicationData);
+        ~Window();
 
-    void Create();
-    void Update();
+        glm::uvec2 GetSize() const;
+        glm::uvec2 GetPosition() const;
+        std::string GetTitle() const;
 
-private:
-    void Initialise();
-    void CreateWindow();
+        void SetSize(const glm::uvec2& size);
+        void SetPosition(const glm::uvec2& position);
+        void SetTitle(const std::string& title);
 
-    void QuitEvent();
-    void ResizeEvent(const SDL_Event& event);
+    private:
+        void Create();
+        void Update();
 
-    WindowData* mWindowData;
-    RendererData* mRendererData;
-};
+        void Initialise();
+        void CreateWindow();
+
+        void QuitEvent();
+        void ResizeEvent(const SDL_Event& event);
+
+        glm::uvec2 mSize;
+        glm::uvec2 mPosition;
+
+        std::string mTitle;
+
+        bool mRunning;
+
+        SDL_Window* mHandle;
+
+        ApplicationData* mApplicationData;
+
+        friend class Application;
+        friend class Renderer;
+    };
+}

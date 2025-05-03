@@ -1,69 +1,36 @@
 #include "../../include/application/application.hpp"
 
-#include <toml++/toml.hpp>
-
-#include <print>
-
-Application::Application()
-    : mWindow(mWindowData, mRendererData), mRenderer(mRendererData, mWindowData), mCamera(mCameraData, mWindowData), mComponentManager(mWindowData, mRendererData, mApplicationDataCameraData, mApplicationData.mEventManager), mInputManager(mWindowData, mEventManager)
+Mosaic::ApplicationData::ApplicationData()
+    : Window(*this), ComponentManager(*this), InputManager(*this)
 {
 }
 
-int Application::Run()
+int Mosaic::Application::Run()
 {
     try
     {
-        LoadSettings();
+        mData.Window.mSize = {800, 600};
+        mData.Window.mTitle = "Mosaic Window";
 
-        mApplicationData.mWindow.Create();
-        mApplicationData.mRenderer.Create();
+        mData.Window.Create();
 
-        mComponentManager.Start();
+        mData.ComponentManager.Start();
 
-        while (mWindowData.Running)
+        while (mData.Window.mRunning)
         {
-            mWindow.Update();
+            mData.Window.Update();
 
-            mInputManager.Update();
-            mComponentManager.Update();
-            mEventManager.Update();
-
-            mCamera.Update();
-            mRenderer.Update();
+            mData.InputManager.Update();
+            mData.ComponentManager.Update();
+            mData.EventManager.Update();
         }
 
-        mComponentManager.Stop();
+        mData.ComponentManager.Stop();
 
         return 0;
     }
-    catch (const std::exception& error)
+    catch (...)
     {
-        std::print("[ERROR]: {}", error.what());
-
         return 1;
     }
-}
-
-void Application::LoadSettings()
-{
-    toml::table config = toml::parse_file("config/settings.toml");
-
-    if (auto size = config["window"]["size"].as_array())
-    {
-        if (size->size() == 2)
-        {
-            auto w = size->get(0)->value<unsigned int>().value_or(800);
-            auto h = size->get(1)->value<unsigned int>().value_or(600);
-            mWindowData.Size = glm::uvec2{w, h};
-        }
-    }
-
-    mWindowData.Title = config["window"]["title"].value_or("New Window");
-    mWindowData.Running = false;
-    mWindowData.Handle = nullptr;
-
-    mRendererData.Context = nullptr;
-    mRendererData.VSync = config["renderer"]["vsync"].value_or(true);
-    mRendererData.Version.x = config["renderer"]["opengl"]["version"]["major"].value_or(3u);
-    mRendererData.Version.y = config["renderer"]["opengl"]["version"]["minor"].value_or(3u);
 }

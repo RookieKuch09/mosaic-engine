@@ -1,25 +1,61 @@
 #include "../../include/application/window.hpp"
-#include "../../include/application/renderer.hpp"
+#include "../../include/application/application.hpp"
 
-Window::Window(WindowData& surfaceData, RendererData& rendererData)
-    : mWindowData(&surfaceData), mRendererData(&rendererData)
+Mosaic::Window::Window(ApplicationData& applicationData)
+    : mApplicationData(&applicationData)
 {
     Initialise();
 }
-Window::~Window()
+Mosaic::Window::~Window()
 {
-    SDL_DestroyWindow(mWindowData->Handle);
+    SDL_DestroyWindow(mHandle);
     SDL_Quit();
 }
 
-void Window::Create()
+glm::uvec2 Mosaic::Window::GetSize() const
+{
+    return mSize;
+}
+
+glm::uvec2 Mosaic::Window::GetPosition() const
+{
+    return mPosition;
+}
+
+std::string Mosaic::Window::GetTitle() const
+{
+    return mTitle;
+}
+
+void Mosaic::Window::SetSize(const glm::uvec2& size)
+{
+    mSize = size;
+
+    SDL_SetWindowSize(mHandle, mSize.x, mSize.y);
+}
+
+void Mosaic::Window::SetPosition(const glm::uvec2& position)
+{
+    mPosition = position;
+
+    SDL_SetWindowPosition(mHandle, mPosition.x, mPosition.y);
+}
+
+void Mosaic::Window::SetTitle(const std::string& title)
+{
+    mTitle = title;
+
+    SDL_SetWindowTitle(mHandle, title.c_str());
+}
+
+void Mosaic::Window::Create()
 {
     CreateWindow();
 
-    mWindowData->Running = true;
+    mRunning = true;
 }
 
-void Window::Update()
+void Mosaic::Window::Update()
 {
     SDL_PumpEvents();
 
@@ -27,51 +63,47 @@ void Window::Update()
 
     while (SDL_PollEvent(&event))
     {
-        if (event.type == SDL_QUIT)
+        if (event.type == SDL_EVENT_QUIT)
         {
             QuitEvent();
         }
-        else if (event.type == SDL_WINDOWEVENT and event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+        else if (event.window.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
         {
             ResizeEvent(event);
         }
     }
 }
 
-void Window::Initialise()
+void Mosaic::Window::Initialise()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO))
     {
-        throw std::runtime_error("Failed to initialise SDL2 video");
+        throw std::runtime_error("Failed to initialise windowing system");
     }
 }
 
-void Window::CreateWindow()
+void Mosaic::Window::CreateWindow()
 {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, mRendererData->Version[0]);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mRendererData->Version[1]);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    unsigned int flags = SDL_WINDOW_RESIZABLE;
 
-    unsigned int flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+    mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.x, mSize.y, flags);
 
-    mWindowData->Handle = SDL_CreateWindow(mWindowData->Title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mWindowData->Size.x, mWindowData->Size.y, flags);
-
-    if (!mWindowData->Handle)
+    if (not mHandle)
     {
-        throw std::runtime_error("Failed to create SDL2 window");
+        throw std::runtime_error("Failed to create window");
     }
 }
 
-void Window::QuitEvent()
+void Mosaic::Window::QuitEvent()
 {
-    mWindowData->Running = false;
+    mRunning = false;
 }
 
-void Window::ResizeEvent(const SDL_Event& event)
+void Mosaic::Window::ResizeEvent(const SDL_Event& event)
 {
-    if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+    if (event.window.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
     {
-        mWindowData->Size.x = event.window.data1;
-        mWindowData->Size.y = event.window.data2;
+        mSize.x = event.window.data1;
+        mSize.y = event.window.data2;
     }
 }

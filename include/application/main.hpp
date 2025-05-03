@@ -4,7 +4,7 @@
 
 int main()
 {
-    Application& application = CreateApplication();
+    Mosaic::Application* application = Mosaic::CreateApplication();
 
-    return application.Run();
+    return application->Run();
 }

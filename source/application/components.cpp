@@ -1,73 +1,69 @@
 #include "../../include/application/components.hpp"
+#include "application/application.hpp"
 
 #include <algorithm>
 
-CameraData* Component::mCameraData;
-WindowData* Component::mWindowData;
-RendererData* Component::mRendererData;
-
-EventManager* Component::mEventManager;
-
-Component::Component()
+Mosaic::Component::Component()
     : mStarted(false)
 {
     ComponentManager::RegisterComponent(this);
 }
 
-Component::~Component()
+Mosaic::Component::~Component()
 {
     ComponentManager::DeregisterComponent(this);
 }
 
-void Component::Start()
+void Mosaic::Component::Start()
 {
 }
 
-void Component::Update()
+void Mosaic::Component::Update()
 {
 }
 
-void Component::Stop()
+void Mosaic::Component::Stop()
 {
 }
 
-ComponentManager::ComponentManager(WindowData& surfaceData, RendererData& rendererData, CameraData& cameraData, EventManager& eventManager)
-    : mWindowData(&surfaceData), mRendererData(&rendererData), mCameraData(&cameraData), mEventManager(&eventManager)
+Mosaic::ComponentManager::ComponentManager(ApplicationData& applicationData)
+    : mApplicationData(&applicationData)
 {
-    Component::mCameraData = mCameraData;
-    Component::mWindowData = mWindowData;
-    Component::mRendererData = mRendererData;
-    Component::mEventManager = mEventManager;
+    Component::Application = mApplicationData;
 }
 
-void ComponentManager::Start()
+void Mosaic::ComponentManager::Start()
 {
     for (unsigned int index = 0; index < mComponents.size(); index++)
     {
-        mComponents[index]->Start();
-        mComponents[index]->mStarted = true;
+        auto& component = mComponents[index];
+
+        component->Start();
+        component->mStarted = true;
     }
 }
 
-void ComponentManager::Update()
+void Mosaic::ComponentManager::Update()
 {
     unsigned int index = 0;
 
     while (index < mComponents.size())
     {
-        if (not mComponents[index]->mStarted)
+        auto& component = mComponents[index];
+
+        if (not component->mStarted)
         {
-            mComponents[index]->Start();
-            mComponents[index]->mStarted = true;
+            component->Start();
+            component->mStarted = true;
         }
 
-        mComponents[index]->Update();
+        component->Update();
 
         index++;
     }
 }
 
-void ComponentManager::Stop()
+void Mosaic::ComponentManager::Stop()
 {
     for (unsigned int index = 0; index < mComponents.size(); index++)
     {
@@ -75,7 +71,7 @@ void ComponentManager::Stop()
     }
 }
 
-void ComponentManager::RegisterComponent(Component* component)
+void Mosaic::ComponentManager::RegisterComponent(Component* component)
 {
     auto it = std::find(mComponents.begin(), mComponents.end(), component);
 
@@ -85,7 +81,7 @@ void ComponentManager::RegisterComponent(Component* component)
     }
 }
 
-void ComponentManager::DeregisterComponent(Component* component)
+void Mosaic::ComponentManager::DeregisterComponent(Component* component)
 {
     auto it = std::find(mComponents.begin(), mComponents.end(), component);
 
@@ -95,4 +91,6 @@ void ComponentManager::DeregisterComponent(Component* component)
     }
 }
 
-std::vector<Component*> ComponentManager::mComponents;
+Mosaic::ApplicationData* Mosaic::Component::Application;
+
+std::vector<Mosaic::Component*> Mosaic::ComponentManager::mComponents;

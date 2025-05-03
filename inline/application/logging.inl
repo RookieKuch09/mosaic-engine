@@ -7,14 +7,14 @@
 #include <iostream>
 
 template <typename... Args>
-void LogEvent(const std::string& message, Args&&... args)
+void Mosaic::LogEvent(const std::string& message, Args&&... args)
 {
     std::string timeStr = GetCurrentTime();
     std::cout << "\033[34m" << timeStr << "\033[0m" << std::vformat(message, std::make_format_args(args...)) << std::endl;
 }
 
 template <typename... Args>
-void LogError(const std::string& message, Args&&... args)
+void Mosaic::LogError(const std::string& message, Args&&... args)
 {
     std::string timeStr = GetCurrentTime();
     std::cout << "\033[31m" << timeStr << "\033[0m" << std::vformat(message, std::make_format_args(args...)) << std::endl;
@@ -23,7 +23,7 @@ void LogError(const std::string& message, Args&&... args)
 }
 
 template <typename... Args>
-void LogWarning(const std::string& message, Args&&... args)
+void Mosaic::LogWarning(const std::string& message, Args&&... args)
 {
     std::string timeStr = GetCurrentTime();
     std::cout << "\033[33m" << timeStr << "\033[0m" << std::vformat(message, std::make_format_args(args...)) << std::endl;

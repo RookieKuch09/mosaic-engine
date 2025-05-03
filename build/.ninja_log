@@ -1,0 +1,8 @@
+# ninja log v6
+3	1328	1746276579306156413	CMakeFiles/Mosaic.dir/source/application/logging.cpp.o	64297ba83829bd62
+2	1033	1746276680354209333	CMakeFiles/Mosaic.dir/source/application/input.cpp.o	85fce2d79cdd9e20
+1033	1057	1746276681385246321	libMosaic.a	c7254d5a858c8d98
+2	1001	1746276579305778230	CMakeFiles/Mosaic.dir/source/application/components.cpp.o	d71603f56b69bd6d
+3	1021	1746276579306300378	CMakeFiles/Mosaic.dir/source/application/window.cpp.o	952ac4ceb0a18822
+2	1037	1746276579304701142	CMakeFiles/Mosaic.dir/source/application/application.cpp.o	2d1f2bbc5170437e
+2	747	1746276579305906915	CMakeFiles/Mosaic.dir/source/application/events.cpp.o	85addbb4f965d1f7

@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-std::string GetCurrentTime()
+std::string Mosaic::GetCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
     std::time_t nowClock = std::chrono::system_clock::to_time_t(now);

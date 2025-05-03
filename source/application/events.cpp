@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-void EventManager::Unsubscribe(void* subscriber)
+void Mosaic::EventManager::Unsubscribe(void* subscriber)
 {
     auto condition = [&](const Listener& listener)
     {
@@ -15,7 +15,7 @@ void EventManager::Unsubscribe(void* subscriber)
     }
 }
 
-void EventManager::Update()
+void Mosaic::EventManager::Update()
 {
     for (auto event = mEventQueue.begin(); event != mEventQueue.end();)
     {

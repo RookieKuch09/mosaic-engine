@@ -1,0 +1,38 @@
+[
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/application.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/application.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/application.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/application.cpp.o"
+},
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/components.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/components.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/components.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/components.cpp.o"
+},
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/events.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/events.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/events.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/events.cpp.o"
+},
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/input.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/input.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/input.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/input.cpp.o"
+},
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/logging.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/logging.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/logging.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/logging.cpp.o"
+},
+{
+  "directory": "/home/lucas/Development/mosaic-engine/build",
+  "command": "/usr/bin/clang++ -DDEBUG -I/home/lucas/Development/mosaic-engine/include -I/home/lucas/Development/mosaic-engine/inline -g -std=c++23 -o CMakeFiles/Mosaic.dir/source/application/window.cpp.o -c /home/lucas/Development/mosaic-engine/source/application/window.cpp",
+  "file": "/home/lucas/Development/mosaic-engine/source/application/window.cpp",
+  "output": "CMakeFiles/Mosaic.dir/source/application/window.cpp.o"
+}
+]

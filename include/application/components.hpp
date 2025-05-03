@@ -1,56 +1,48 @@
 #pragma once
 
-#include "events.hpp"
-#include "renderer.hpp"
-#include "window.hpp"
-
 #include <vector>
 
-struct CameraData;
-
-class Component
+namespace Mosaic
 {
-public:
-    Component();
-    virtual ~Component();
+    struct ApplicationData;
 
-    virtual void Start();
-    virtual void Update();
-    virtual void Stop();
+    class Component
+    {
+    public:
+        Component();
+        ~Component();
 
-protected:
-    static CameraData* mCameraData;
-    static WindowData* mWindowData;
-    static RendererData* mRendererData;
+    protected:
+        virtual void Start();
+        virtual void Update();
+        virtual void Stop();
 
-    static EventManager* mEventManager;
+        static ApplicationData* Application;
 
-private:
-    bool mStarted;
+    private:
+        bool mStarted;
 
-    friend class ComponentManager;
-};
+        friend class ComponentManager;
+    };
 
-class ComponentManager
-{
-public:
-    ComponentManager(WindowData& surfaceData, RendererData& rendererData, CameraData& cameraData, EventManager& eventManager);
+    class ComponentManager
+    {
+    public:
+        ComponentManager(ApplicationData& applicationData);
 
-    void Start();
-    void Update();
-    void Stop();
+    private:
+        void Start();
+        void Update();
+        void Stop();
 
-private:
-    static void RegisterComponent(Component* component);
-    static void DeregisterComponent(Component* component);
+        static void RegisterComponent(Component* component);
+        static void DeregisterComponent(Component* component);
 
-    static std::vector<Component*> mComponents;
+        static std::vector<Component*> mComponents;
 
-    WindowData* mWindowData;
-    RendererData* mRendererData;
-    CameraData* mCameraData;
+        ApplicationData* mApplicationData;
 
-    EventManager* mEventManager;
-
-    friend class Component;
-};
+        friend class Component;
+        friend class Application;
+    };
+}

@@ -1,22 +1,23 @@
 #include "../../include/application/input.hpp"
+#include "../../include/application/application.hpp"
 
-InputManager::InputManager(WindowData& windowData, EventManager& eventManager)
-    : mWindowData(&windowData), mEventManager(&eventManager)
+Mosaic::InputManager::InputManager(ApplicationData& applicationData)
+    : mApplicationData(&applicationData)
 {
 }
 
-void InputManager::Update()
+void Mosaic::InputManager::Update()
 {
     EmitKeyEvents();
     EmitMouseEvents();
     EmitCursorEvents();
 }
 
-void InputManager::EmitKeyEvents()
+void Mosaic::InputManager::EmitKeyEvents()
 {
-    const Uint8* currentKeys = SDL_GetKeyboardState(nullptr);
+    const bool* currentKeys = SDL_GetKeyboardState(nullptr);
 
-    for (int scancode = 0; scancode < SDL_NUM_SCANCODES; scancode++)
+    for (int scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
     {
         Key key = static_cast<Key>(scancode);
 
@@ -26,54 +27,54 @@ void InputManager::EmitKeyEvents()
 
         if (state.IsDown and not state.WasDownLastFrame)
         {
-            mEventManager->Emit<KeyInput>({key, Event::Press});
+            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Press});
         }
         else if (state.IsDown and state.WasDownLastFrame)
         {
-            mEventManager->Emit<KeyInput>({key, Event::Hold});
+            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Hold});
         }
         else if (state.WasDownLastFrame and not state.IsDown)
         {
-            mEventManager->Emit<KeyInput>({key, Event::Release});
+            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Release});
         }
 
         state.WasDownLastFrame = state.IsDown;
     }
 }
 
-void InputManager::EmitMouseEvents()
+void Mosaic::InputManager::EmitMouseEvents()
 {
     Uint32 mouseState = SDL_GetMouseState(nullptr, nullptr);
 
     auto handleButton = [&](MouseButton button, Uint32 sdlButtonMask)
     {
-        bool isDown = mouseState & SDL_BUTTON(sdlButtonMask);
+        bool isDown = mouseState bitand SDL_BUTTON_MASK(sdlButtonMask);
+
         ButtonState& state = mMouseButtonStates[button];
 
         if (isDown)
         {
-            if (!state.IsDown && !state.WasDownLastFrame)
+            if (not state.IsDown and not state.WasDownLastFrame)
             {
-                mEventManager->Emit<MouseInput>({button, Event::Press});
+                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Press});
             }
-            else if (state.IsDown && state.WasDownLastFrame)
+            else if (state.IsDown and state.WasDownLastFrame)
             {
-                mEventManager->Emit<MouseInput>({button, Event::Hold});
+                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Hold});
             }
 
             state.IsDown = true;
         }
         else
         {
-            if (state.IsDown && state.WasDownLastFrame)
+            if (state.IsDown and state.WasDownLastFrame)
             {
-                mEventManager->Emit<MouseInput>({button, Event::Release});
+                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Release});
             }
 
             state.IsDown = false;
         }
 
-        // Update last frame state for next tick
         state.WasDownLastFrame = state.IsDown;
     };
 
@@ -82,18 +83,16 @@ void InputManager::EmitMouseEvents()
     handleButton(MouseButton::MiddleClick, SDL_BUTTON_MIDDLE);
 }
 
-void InputManager::EmitCursorEvents()
+void Mosaic::InputManager::EmitCursorEvents()
 {
-    int x, y;
+    float x, y;
     SDL_GetMouseState(&x, &y);
 
-    glm::ivec2 screenPos(x, y);
+    const glm::uvec2& size = mApplicationData->Window.GetSize();
 
-    int width, height;
-    SDL_GetWindowSize(mWindowData->Handle, &width, &height);
-
-    glm::fvec2 devicePos = {(2.0 * x / width) - 1.0, 1.0 - (2.0 * y / height)};
+    glm::uvec2 screenPos(x, y);
+    glm::fvec2 devicePos = {(2.0 * x / size.x) - 1.0, 1.0 - (2.0 * y / size.y)};
 
     CursorMovement movement{screenPos, devicePos};
-    mEventManager->Emit<CursorMovement>(movement);
+    mApplicationData->EventManager.Emit<CursorMovement>(movement);
 }

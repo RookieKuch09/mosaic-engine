@@ -1,42 +1,33 @@
 #pragma once
 
-#include "camera.hpp"
 #include "components.hpp"
 #include "events.hpp"
 #include "input.hpp"
-#include "renderer.hpp"
 #include "window.hpp"
 
-struct ApplicationData
+namespace Mosaic
 {
-    // Standalone objects
-    Window Window;
-    Renderer Renderer;
-    Camera Camera;
+    struct ApplicationData
+    {
+        ApplicationData();
 
-    // Standalone object data
-    WindowData WindowData;
-    RendererData RendererData;
-    CameraData CameraData;
+        Window Window;
 
-    // System managers
-    ComponentManager ComponentManager;
-    EventManager EventManager;
-    InputManager InputManager;
-};
+        ComponentManager ComponentManager;
+        EventManager EventManager;
+        InputManager InputManager;
+    };
 
-class Application
-{
-public:
-    Application();
+    class Application
+    {
+    public:
+        virtual ~Application() = default;
 
-private:
-    void LoadSettings();
-    int Run();
+        int Run();
 
-    ApplicationData mApplicationData;
+    private:
+        ApplicationData mData;
+    };
 
-    friend int main();
-};
-
-Application* CreateApplication();
+    Application* CreateApplication();
+}
