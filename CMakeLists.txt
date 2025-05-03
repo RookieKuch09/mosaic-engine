@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 # Create project
-project(MosaicFramework LANGUAGES CXX)
+project(MosaicEngine LANGUAGES CXX)
 
 # Set export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)

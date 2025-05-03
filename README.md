@@ -1,4 +1,4 @@
-# Mosaic Framework
+# Mosaic Engine
 
 ## Overview
 
@@ -34,7 +34,7 @@ Mosaic is currently focused on Linux and macOS. Windows support may come later, 
 
 ## Third-Party Libraries
 
-Mosaic Framework makes use of the following open-source libraries:
+Mosaic Engine makes use of the following open-source libraries:
 
 - **SDL2** — windowing, input, and audio ([zlib license](https://www.libsdl.org/license.php))
 - **GLEW** — OpenGL extension loading ([BSD license](http://glew.sourceforge.net/))
