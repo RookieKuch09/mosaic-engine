@@ -17,12 +17,11 @@ Whether you're building a quick game jam prototype or a full-fledged indie title
 
 - Any C++23 compatible compiler (Tested with [Clang++](https://clang.llvm.org) and [GCC](https://gcc.gnu.org))
 - [CMake](https://cmake.org/) (Tested with CMake 4.0+, most versions will work)
-- [SDL3](https://www.libsdl.org/)
-- [GLEW](https://glew.sourceforge.net/)
 - A Vulkan-compatible OS and GPU, or [MoltenVK](https://github.com/KhronosGroup/MoltenVK) on macOS
 
 ## Roadmap
 
+- **Stable Vulkan support**: Current afforts are focused on replacing OpenGL with Vulkan
 - **Audio playback**: Plan to integrate [OpenAL](https://www.openal.org/)
 - **Physics integration**: Lightweight physics integration
 - **Muliple rendering backends**: Potential future support for rendering backends like Metal
@@ -38,7 +37,7 @@ Thanks to the authors and contributors of these projects!
 
 ## SDL3 on GNOME (Wayland)
 
-SDL3 may not work correctly on the GNOME desktop environment with Wayland due to its reliance on the X11 backend. If you experience any issues, try forcing SDL3 to use X11:
+SDL3 may not work correctly on the GNOME desktop environment with Wayland due to the library's reliance on the X11 backend. If you experience any issues, try forcing SDL3 to use X11:
 ```bash
 SDL_VIDEODRIVER=x11 ./your_app
 ```

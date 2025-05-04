@@ -54,11 +54,11 @@ install(TARGETS Mosaic
 )
 
 # Install headers and inline files
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include)
-install(DIRECTORY inline/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline)
+install(DIRECTORY mosaic/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include)
+install(DIRECTORY mosaic/inline/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline)
 
 # Install primary interface files
-install(DIRECTORY interface/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic)
+install(DIRECTORY mosaic/interface/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic)
 
 # Export the CMake config for consumers
 install(EXPORT MosaicTargets
