@@ -8,9 +8,10 @@ Whether you're building a quick game jam prototype or a full-fledged indie title
 
 ## Features
 
-- **Cross-platform build system:** Clean and modern CMake setup with out-of-the-box support for Clang, LLD, and Make/Ninja
-- **Input handling:** Unified keyboard and mouse inputs via SDL3
-- **Component design:** Design Components to perform various tasks
+- **Cross-platform build system support**: Out-of-the-box support for CMake with Make/Ninja
+- **Input handling**: Unified keyboard and mouse inputs via SDL3
+- **Event management**: Flexible event and communication system
+- **Component design**: Relies on Components for functionality
 
 ## Requirements
 
@@ -18,15 +19,13 @@ Whether you're building a quick game jam prototype or a full-fledged indie title
 - [CMake](https://cmake.org/) (Tested with CMake 4.0+, most versions will work)
 - [SDL3](https://www.libsdl.org/)
 - [GLEW](https://glew.sourceforge.net/)
-
-## Compatibility
-
-Mosaic is currently focused on supporting Linux and macOS. Windows support may come later, but isn’t a priority as of now.
+- A Vulkan-compatible OS and GPU, or [MoltenVK](https://github.com/KhronosGroup/MoltenVK) on macOS
 
 ## Roadmap
 
-- Audio playback
-- Physics integration
+- **Audio playback**: Plan to integrate [OpenAL](https://www.openal.org/)
+- **Physics integration**: Lightweight physics integration
+- **Muliple rendering backends**: Potential future support for rendering backends like Metal
 
 ## Third-Party Libraries
 
@@ -37,6 +36,17 @@ Mosaic Engine makes use of the following open-source libraries:
 
 Thanks to the authors and contributors of these projects!
 
-## Notes
+## SDL3 on GNOME (Wayland)
+
+SDL3 may not work correctly on the GNOME desktop environment with Wayland due to its reliance on the X11 backend. If you experience any issues, try forcing SDL3 to use X11:
+```bash
+SDL_VIDEODRIVER=x11 ./your_app
+```
+
+## Windows support
+
+Mosaic is currently focused on supporting Linux and macOS support. Windows support may come later, but isn’t a priority as of now. Mosaic may build and function on Windows with some tinkering. Any contributions for Windows support are welcome!
+
+## Licensing
 
 Mosaic is released under the MIT licence. If you use it in a published game or project, a credit would be greatly appreciated (but it’s not required).

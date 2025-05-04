@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Locate all sources
-file(GLOB_RECURSE SOURCES "source/**/*.cpp")
+file(GLOB_RECURSE SOURCES "mosaic/source/**/*.cpp")
 
 # Create the library
 add_library(Mosaic)
@@ -18,14 +18,13 @@ add_library(Mosaic)
 # Set the library's sources
 target_sources(Mosaic PRIVATE ${SOURCES})
 
-# Set include directories for the library
-target_include_directories(Mosaic PRIVATE "include" "inline")
-
 # Find all required packages
+find_package(Vulkan REQUIRED)
 find_package(SDL3 REQUIRED)
 
 # Link library against required packages
 target_link_libraries(Mosaic PRIVATE SDL3::SDL3)
+target_link_libraries(Mosaic PRIVATE Vulkan::Vulkan)
 
 # Clear install directory to avoid stale files
 install(CODE "
@@ -40,8 +39,8 @@ include(CMakePackageConfigHelpers)
 # Set the public include directory
 target_include_directories(Mosaic
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inline>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mosaic/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mosaic/inline>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline>
 )
