@@ -9,6 +9,16 @@ namespace Mosaic
 {
     class ApplicationData;
 
+    struct WindowMoveEvent
+    {
+        glm::uvec2 Position;
+    };
+
+    struct WindowResizeEvent
+    {
+        glm::uvec2 Size;
+    };
+
     class Window
     {
     public:

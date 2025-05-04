@@ -3,6 +3,7 @@
 #include "components.hpp"
 #include "events.hpp"
 #include "input.hpp"
+#include "logging.hpp"
 #include "renderer.hpp"
 #include "window.hpp"
 

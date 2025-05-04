@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 namespace Mosaic
 {
@@ -29,8 +30,22 @@ namespace Mosaic
         void CreatePhysicalDevice();
         void CreateGraphicsQueueAndDevice();
         void CreateSurface();
+        void CreateSwapchain();
+        void CreateRenderPass();
+        void CreateFramebuffers();
+        void CreateCommandBuffers();
+        void CreateSemaphores();
+
+        void RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
+        void SubmitCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
+
+        void PresentImage(std::uint32_t imageIndex);
+
+        void SelectSurfaceFormatAndPresentMode();
 
         std::vector<const char*> ExtractVectorStrings(const std::vector<std::string>& vector);
+
+        std::uint32_t mImageCount;
 
         ApplicationData* mApplicationData;
 
@@ -38,13 +53,27 @@ namespace Mosaic
         std::vector<std::string> mDeviceExtensions;
         std::vector<std::string> mLayers;
 
+        std::vector<vk::Image> mSwapchainImages;
+        std::vector<vk::UniqueImageView> mSwapchainImageViews;
+        std::vector<vk::UniqueFramebuffer> mSwapchainFramebuffers;
+        std::vector<vk::UniqueCommandBuffer> mCommandBuffers;
+        std::vector<vk::UniqueSemaphore> mImageAvailableSemaphores;
+        std::vector<vk::UniqueSemaphore> mRenderFinishedSemaphores;
+
         vk::UniqueInstance mInstance;
         vk::UniqueDevice mDevice;
         vk::PhysicalDevice mPhysicalDevice;
         vk::Queue mGraphicsQueue;
         vk::UniqueSurfaceKHR mSurface;
+        vk::UniqueSwapchainKHR mSwapchain;
+        vk::UniqueRenderPass mRenderPass;
+        vk::SurfaceFormatKHR mSurfaceFormat;
+        vk::Extent2D mSwapchainExtent;
+        vk::UniqueCommandPool mCommandPool;
 
-        glm::fvec4 mSwapColour;
+        vk::PresentModeKHR mPresentMode;
+
+        glm::fvec4 mSwapColour = glm::fvec4(0.2, 0.3, 0.4, 1.0);
 
         friend class Application;
     };

@@ -73,6 +73,10 @@ void Mosaic::Window::Update()
         {
             ResizeEvent(event);
         }
+        else if (event.window.type == SDL_EVENT_WINDOW_MOVED)
+        {
+            MoveEvent(event);
+        }
     }
 }
 
@@ -104,9 +108,16 @@ void Mosaic::Window::QuitEvent()
 
 void Mosaic::Window::ResizeEvent(const SDL_Event& event)
 {
-    if (event.window.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
-    {
-        mSize.x = event.window.data1;
-        mSize.y = event.window.data2;
-    }
+    mSize.x = event.window.data1;
+    mSize.y = event.window.data2;
+
+    mApplicationData->EventManager.Emit<WindowResizeEvent>({mSize});
+}
+
+void Mosaic::Window::MoveEvent(const SDL_Event& event)
+{
+    mPosition.x = event.window.data1;
+    mPosition.y = event.window.data2;
+
+    mApplicationData->EventManager.Emit<WindowMoveEvent>({mPosition});
 }
