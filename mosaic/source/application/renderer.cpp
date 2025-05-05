@@ -19,35 +19,85 @@ void Mosaic::Renderer::Create()
     CreateRenderPass();
     CreateFramebuffers();
     CreateCommandBuffers();
-    CreateSemaphores();
+    CreateSyncObjects();
+
+    mCurrentFrame = 0;
 }
 
 void Mosaic::Renderer::Update()
 {
-    uint32_t imageIndex = 0;
+    mDevice->waitForFences(1, &*mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+    mDevice->resetFences(1, &*mInFlightFences[mCurrentFrame]);
+
+    uint32_t imageIndex;
     vk::Result result = mDevice->acquireNextImageKHR(
         *mSwapchain,
-        100000000, nullptr,
+        UINT64_MAX,
+        *mImageAvailableSemaphores[mCurrentFrame],
         nullptr,
         &imageIndex);
 
-    LogEvent("Acquired image");
-
-    if (result == vk::Result::eErrorOutOfDateKHR)
+    if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
     {
+        return;
+    }
+    else if (result != vk::Result::eSuccess)
+    {
+        LogError("Failed to acquire swapchain image: {}", vk::to_string(result));
     }
 
-    RecordCommandBuffer(*(mCommandBuffers[imageIndex]), imageIndex);
-    SubmitCommandBuffer(*(mCommandBuffers[imageIndex]), imageIndex);
+    RecordCommandBuffer(*mCommandBuffers[imageIndex], imageIndex);
 
-    PresentImage(imageIndex);
+    vk::Semaphore waitSemaphores[] = {*mImageAvailableSemaphores[mCurrentFrame]};
+    vk::PipelineStageFlags waitStages[] = {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    vk::Semaphore signalSemaphores[] = {*mRenderFinishedSemaphores[mCurrentFrame]};
 
-    LogEvent("Updated");
+    vk::SubmitInfo submitInfo(
+        1,
+        waitSemaphores,
+        waitStages,
+        1,
+        &*mCommandBuffers[imageIndex],
+        1,
+        signalSemaphores);
+
+    try
+    {
+        mGraphicsQueue.submit(submitInfo, *mInFlightFences[mCurrentFrame]);
+    }
+    catch (const vk::SystemError& error)
+    {
+        LogError("Failed to submit command buffer: {}", error.what());
+    }
+
+    vk::PresentInfoKHR presentInfo(
+        1,
+        signalSemaphores,
+        1,
+        &*mSwapchain,
+        &imageIndex,
+        nullptr);
+
+    try
+    {
+        auto presRes = mGraphicsQueue.presentKHR(presentInfo);
+
+        if (presRes == vk::Result::eErrorOutOfDateKHR or presRes == vk::Result::eSuboptimalKHR)
+        {
+        }
+    }
+    catch (const vk::SystemError& error)
+    {
+        LogError("Failed to present swapchain image: {}", error.what());
+    }
+
+    mCurrentFrame = (mCurrentFrame + 1) % static_cast<uint32_t>(mInFlightFences.size());
 }
 
 void Mosaic::Renderer::GetBaseExtensions()
 {
     unsigned int count = 0;
+
     const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&count);
 
     if (count == 0 or extensions == nullptr)
@@ -87,11 +137,6 @@ void Mosaic::Renderer::CreateInstance()
         VK_API_VERSION_1_4,
     };
 
-    if (mApplicationData->DebugMode)
-    {
-        mLayers.push_back("VK_LAYER_KHRONOS_validation");
-    }
-
     auto layers = ExtractVectorStrings(mLayers);
     auto extensions = ExtractVectorStrings(mBaseExtensions);
 
@@ -116,8 +161,6 @@ void Mosaic::Renderer::CreateInstance()
     {
         LogError("Failed to create Vulkan instance, unknown error");
     }
-
-    LogEvent("Instance created");
 }
 
 void Mosaic::Renderer::CreatePhysicalDevice()
@@ -157,8 +200,6 @@ void Mosaic::Renderer::CreatePhysicalDevice()
     }
 
     GetDeviceExtensions();
-
-    LogEvent("PDevice created");
 }
 
 void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
@@ -223,8 +264,6 @@ void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
     {
         LogError("Failed to get the graphics queue from the device");
     }
-
-    LogEvent("GQueue and Device created");
 }
 
 void Mosaic::Renderer::CreateSurface()
@@ -237,8 +276,6 @@ void Mosaic::Renderer::CreateSurface()
     }
 
     mSurface = vk::UniqueSurfaceKHR(rawSurface, *mInstance);
-
-    LogEvent("Surface created");
 }
 
 void Mosaic::Renderer::CreateSwapchain()
@@ -312,8 +349,6 @@ void Mosaic::Renderer::CreateSwapchain()
     }
 
     mImageCount = mSwapchainImages.size();
-
-    LogEvent("Swapchain created");
 }
 
 void Mosaic::Renderer::CreateRenderPass()
@@ -366,8 +401,6 @@ void Mosaic::Renderer::CreateRenderPass()
     {
         LogError("Failed to create render pass: {}", error.what());
     }
-
-    LogEvent("Renderpass created");
 }
 
 void Mosaic::Renderer::CreateFramebuffers()
@@ -416,8 +449,6 @@ void Mosaic::Renderer::CreateFramebuffers()
             LogError("Failed to create framebuffer: {}", error.what());
         }
     }
-
-    LogEvent("Framebuffers created");
 }
 
 void Mosaic::Renderer::CreateCommandBuffers()
@@ -442,53 +473,47 @@ void Mosaic::Renderer::CreateCommandBuffers()
     {
         LogError("Failed to create command buffers: {}", error.what());
     }
-
-    LogEvent("CommandBuffers created");
 }
 
-void Mosaic::Renderer::CreateSemaphores()
+void Mosaic::Renderer::CreateSyncObjects()
 {
-    vk::SemaphoreCreateInfo semaphoreCreateInfo = {};
+    vk::SemaphoreCreateInfo semaphoreInfo = {};
+    vk::FenceCreateInfo fenceInfo = {vk::FenceCreateFlagBits::eSignaled};
 
-    mImageAvailableSemaphores.resize(mSwapchainImages.size());
-    mRenderFinishedSemaphores.resize(mSwapchainImages.size());
+    size_t frames = mSwapchainImages.size();
 
-    for (size_t i = 0; i < mSwapchainImages.size(); ++i)
+    mImageAvailableSemaphores.resize(frames);
+    mRenderFinishedSemaphores.resize(frames);
+    mInFlightFences.resize(frames);
+
+    for (size_t i = 0; i < frames; ++i)
     {
-        mImageAvailableSemaphores[i] = mDevice->createSemaphoreUnique(semaphoreCreateInfo);
-        mRenderFinishedSemaphores[i] = mDevice->createSemaphoreUnique(semaphoreCreateInfo);
+        mImageAvailableSemaphores[i] = mDevice->createSemaphoreUnique(semaphoreInfo);
+        mRenderFinishedSemaphores[i] = mDevice->createSemaphoreUnique(semaphoreInfo);
+        mInFlightFences[i] = mDevice->createFenceUnique(fenceInfo);
     }
-
-    LogEvent("Semaphores created");
 }
 
 void Mosaic::Renderer::RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex)
 {
-    LogEvent("Recording command buffer for image {}", imageIndex);
-
-    // Sanity checks
     if (!mRenderPass)
     {
         LogError("Render pass is null!");
-        return;
     }
 
     if (imageIndex >= mSwapchainFramebuffers.size())
     {
         LogError("Invalid image index: {} (framebuffers size: {})", imageIndex, mSwapchainFramebuffers.size());
-        return;
     }
 
     if (!mSwapchainFramebuffers[imageIndex])
     {
         LogError("Framebuffer for image {} is null!", imageIndex);
-        return;
     }
 
-    if (mSwapchainExtent.width == 0 || mSwapchainExtent.height == 0)
+    if (mSwapchainExtent.width == 0 or mSwapchainExtent.height == 0)
     {
         LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
-        return;
     }
 
     try
@@ -513,8 +538,6 @@ void Mosaic::Renderer::RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std
 
         commandBuffer.endRenderPass();
         commandBuffer.end();
-
-        LogEvent("Command buffer recorded successfully for image {}", imageIndex);
     }
     catch (const vk::SystemError& err)
     {
@@ -556,8 +579,6 @@ void Mosaic::Renderer::SubmitCommandBuffer(vk::CommandBuffer& commandBuffer, std
     {
         LogError("Failed to submit command buffer: {}", error.what());
     }
-
-    LogEvent("Command buffer submitted");
 }
 
 void Mosaic::Renderer::PresentImage(std::uint32_t imageIndex)
@@ -577,8 +598,6 @@ void Mosaic::Renderer::PresentImage(std::uint32_t imageIndex)
     {
         LogError("Failed to present swapchain image: {}", error.what());
     }
-
-    LogEvent("Presented");
 }
 
 void Mosaic::Renderer::SelectSurfaceFormatAndPresentMode()
@@ -598,6 +617,7 @@ void Mosaic::Renderer::SelectSurfaceFormatAndPresentMode()
             format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
         {
             mSurfaceFormat = format;
+
             break;
         }
     }

@@ -5,6 +5,8 @@
 
 #include <string>
 
+static constexpr std::uint64_t FPS_INTERVAL_MS = 1000;
+
 namespace Mosaic
 {
     class ApplicationData;
@@ -54,6 +56,9 @@ namespace Mosaic
         SDL_Window* mHandle;
 
         ApplicationData* mApplicationData;
+
+        std::uint64_t mFrameCounter = 0;
+        std::uint64_t mLastTime = 0;
 
         friend class Application;
         friend class Renderer;

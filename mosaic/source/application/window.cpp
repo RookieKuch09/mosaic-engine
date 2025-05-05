@@ -78,6 +78,23 @@ void Mosaic::Window::Update()
             MoveEvent(event);
         }
     }
+
+    // === Frame timing ===
+    mFrameCounter++;
+
+    std::uint64_t now = SDL_GetTicks();
+
+    if (mLastTime == 0)
+        mLastTime = now;
+
+    if (now - mLastTime >= FPS_INTERVAL_MS)
+    {
+        float fps = static_cast<float>(mFrameCounter * 1000) / static_cast<float>(now - mLastTime);
+        LogEvent("FPS: {:.2f}", fps);
+
+        mFrameCounter = 0;
+        mLastTime = now;
+    }
 }
 
 void Mosaic::Window::Initialise()

@@ -34,7 +34,7 @@ namespace Mosaic
         void CreateRenderPass();
         void CreateFramebuffers();
         void CreateCommandBuffers();
-        void CreateSemaphores();
+        void CreateSyncObjects();
 
         void RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
         void SubmitCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
@@ -46,6 +46,8 @@ namespace Mosaic
         std::vector<const char*> ExtractVectorStrings(const std::vector<std::string>& vector);
 
         std::uint32_t mImageCount;
+
+        unsigned int mCurrentFrame;
 
         ApplicationData* mApplicationData;
 
@@ -59,6 +61,7 @@ namespace Mosaic
         std::vector<vk::UniqueCommandBuffer> mCommandBuffers;
         std::vector<vk::UniqueSemaphore> mImageAvailableSemaphores;
         std::vector<vk::UniqueSemaphore> mRenderFinishedSemaphores;
+        std::vector<vk::UniqueFence> mInFlightFences;
 
         vk::UniqueInstance mInstance;
         vk::UniqueDevice mDevice;
