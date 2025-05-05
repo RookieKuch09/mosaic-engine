@@ -43,7 +43,7 @@ void Mosaic::Renderer::Update()
     }
     else if (result != vk::Result::eSuccess)
     {
-        LogError("Failed to acquire swapchain image: {}", vk::to_string(result));
+        mApplicationData->Console.LogError("Failed to acquire swapchain image: {}", vk::to_string(result));
     }
 
     RecordCommandBuffer(*mCommandBuffers[imageIndex], imageIndex);
@@ -67,7 +67,7 @@ void Mosaic::Renderer::Update()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to submit command buffer: {}", error.what());
+        mApplicationData->Console.LogError("Failed to submit command buffer: {}", error.what());
     }
 
     vk::PresentInfoKHR presentInfo(
@@ -88,7 +88,7 @@ void Mosaic::Renderer::Update()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to present swapchain image: {}", error.what());
+        mApplicationData->Console.LogError("Failed to present swapchain image: {}", error.what());
     }
 
     mCurrentFrame = (mCurrentFrame + 1) % static_cast<uint32_t>(mInFlightFences.size());
@@ -102,7 +102,7 @@ void Mosaic::Renderer::GetBaseExtensions()
 
     if (count == 0 or extensions == nullptr)
     {
-        LogError("Failed to get Vulkan instance extensions");
+        mApplicationData->Console.LogError("Failed to get Vulkan instance extensions");
     }
     else
     {
@@ -154,12 +154,12 @@ void Mosaic::Renderer::CreateInstance()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to create Vulkan instance: {}", error.what());
+        mApplicationData->Console.LogError("Failed to create Vulkan instance: {}", error.what());
     }
 
     if (not mInstance)
     {
-        LogError("Failed to create Vulkan instance, unknown error");
+        mApplicationData->Console.LogError("Failed to create Vulkan instance, unknown error");
     }
 }
 
@@ -173,12 +173,12 @@ void Mosaic::Renderer::CreatePhysicalDevice()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Error enumerating physical devices: {}", error.what());
+        mApplicationData->Console.LogError("Error enumerating physical devices: {}", error.what());
     }
 
     if (devices.empty())
     {
-        LogError("No suitable GPU found by Vulkan");
+        mApplicationData->Console.LogError("No suitable GPU found by Vulkan");
     }
 
     for (const auto& device : devices)
@@ -196,7 +196,7 @@ void Mosaic::Renderer::CreatePhysicalDevice()
 
     if (not mPhysicalDevice)
     {
-        LogError("No suitable discrete GPU found");
+        mApplicationData->Console.LogError("No suitable discrete GPU found");
     }
 
     GetDeviceExtensions();
@@ -208,7 +208,7 @@ void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
 
     if (queueFamilies.empty())
     {
-        LogError("No queue families found for the physical device");
+        mApplicationData->Console.LogError("No queue families found for the physical device");
     }
 
     std::optional<unsigned int> graphicsQueueIndex;
@@ -225,7 +225,7 @@ void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
 
     if (not graphicsQueueIndex)
     {
-        LogError("Failed to find graphics queue");
+        mApplicationData->Console.LogError("Failed to find graphics queue");
     }
 
     float queuePriority = 1.0;
@@ -255,14 +255,14 @@ void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to create Vulkan device: {}", error.what());
+        mApplicationData->Console.LogError("Failed to create Vulkan device: {}", error.what());
     }
 
     mGraphicsQueue = mDevice->getQueue(*graphicsQueueIndex, 0);
 
     if (not mGraphicsQueue)
     {
-        LogError("Failed to get the graphics queue from the device");
+        mApplicationData->Console.LogError("Failed to get the graphics queue from the device");
     }
 }
 
@@ -272,7 +272,7 @@ void Mosaic::Renderer::CreateSurface()
 
     if (!SDL_Vulkan_CreateSurface(mApplicationData->Window.mHandle, *mInstance, nullptr, &rawSurface))
     {
-        LogError("Failed to create Vulkan surface");
+        mApplicationData->Console.LogError("Failed to create Vulkan surface");
     }
 
     mSurface = vk::UniqueSurfaceKHR(rawSurface, *mInstance);
@@ -315,12 +315,12 @@ void Mosaic::Renderer::CreateSwapchain()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to create Vulkan swapchain: {}", error.what());
+        mApplicationData->Console.LogError("Failed to create Vulkan swapchain: {}", error.what());
     }
 
     if (not mSwapchain)
     {
-        LogError("Failed to create swapchain (unknown error)");
+        mApplicationData->Console.LogError("Failed to create swapchain (unknown error)");
     }
 
     mSwapchainImages = mDevice->getSwapchainImagesKHR(*mSwapchain);
@@ -344,7 +344,7 @@ void Mosaic::Renderer::CreateSwapchain()
         }
         catch (const vk::SystemError& error)
         {
-            LogError("Failed to create image view for swapchain image: {}", error.what());
+            mApplicationData->Console.LogError("Failed to create image view for swapchain image: {}", error.what());
         }
     }
 
@@ -399,7 +399,7 @@ void Mosaic::Renderer::CreateRenderPass()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to create render pass: {}", error.what());
+        mApplicationData->Console.LogError("Failed to create render pass: {}", error.what());
     }
 }
 
@@ -423,7 +423,7 @@ void Mosaic::Renderer::CreateFramebuffers()
         }
         catch (const vk::SystemError& error)
         {
-            LogError("Failed to create framebuffer image: {}", error.what());
+            mApplicationData->Console.LogError("Failed to create framebuffer image: {}", error.what());
         }
     }
 
@@ -446,7 +446,7 @@ void Mosaic::Renderer::CreateFramebuffers()
         }
         catch (const vk::SystemError& error)
         {
-            LogError("Failed to create framebuffer: {}", error.what());
+            mApplicationData->Console.LogError("Failed to create framebuffer: {}", error.what());
         }
     }
 }
@@ -471,7 +471,7 @@ void Mosaic::Renderer::CreateCommandBuffers()
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to create command buffers: {}", error.what());
+        mApplicationData->Console.LogError("Failed to create command buffers: {}", error.what());
     }
 }
 
@@ -498,22 +498,22 @@ void Mosaic::Renderer::RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std
 {
     if (!mRenderPass)
     {
-        LogError("Render pass is null!");
+        mApplicationData->Console.LogError("Render pass is null!");
     }
 
     if (imageIndex >= mSwapchainFramebuffers.size())
     {
-        LogError("Invalid image index: {} (framebuffers size: {})", imageIndex, mSwapchainFramebuffers.size());
+        mApplicationData->Console.LogError("Invalid image index: {} (framebuffers size: {})", imageIndex, mSwapchainFramebuffers.size());
     }
 
     if (!mSwapchainFramebuffers[imageIndex])
     {
-        LogError("Framebuffer for image {} is null!", imageIndex);
+        mApplicationData->Console.LogError("Framebuffer for image {} is null!", imageIndex);
     }
 
     if (mSwapchainExtent.width == 0 or mSwapchainExtent.height == 0)
     {
-        LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
+        mApplicationData->Console.LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
     }
 
     try
@@ -541,15 +541,15 @@ void Mosaic::Renderer::RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std
     }
     catch (const vk::SystemError& err)
     {
-        LogError("Vulkan system error during command buffer recording: {}", err.what());
+        mApplicationData->Console.LogError("Vulkan system error during command buffer recording: {}", err.what());
     }
     catch (const std::exception& ex)
     {
-        LogError("Standard exception during command buffer recording: {}", ex.what());
+        mApplicationData->Console.LogError("Standard exception during command buffer recording: {}", ex.what());
     }
     catch (...)
     {
-        LogError("Unknown error during command buffer recording!");
+        mApplicationData->Console.LogError("Unknown error during command buffer recording!");
     }
 }
 
@@ -577,7 +577,7 @@ void Mosaic::Renderer::SubmitCommandBuffer(vk::CommandBuffer& commandBuffer, std
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to submit command buffer: {}", error.what());
+        mApplicationData->Console.LogError("Failed to submit command buffer: {}", error.what());
     }
 }
 
@@ -596,7 +596,7 @@ void Mosaic::Renderer::PresentImage(std::uint32_t imageIndex)
     }
     catch (const vk::SystemError& error)
     {
-        LogError("Failed to present swapchain image: {}", error.what());
+        mApplicationData->Console.LogError("Failed to present swapchain image: {}", error.what());
     }
 }
 
@@ -608,7 +608,7 @@ void Mosaic::Renderer::SelectSurfaceFormatAndPresentMode()
 
     if (formats.empty() or presentModes.empty())
     {
-        LogError("Surface does not support any formats or present modes");
+        mApplicationData->Console.LogError("Surface does not support any formats or present modes");
     }
 
     for (const auto& format : formats)

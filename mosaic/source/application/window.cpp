@@ -1,6 +1,4 @@
-#include "../../include/application/window.hpp"
 #include "../../include/application/application.hpp"
-#include "../../include/application/logging.hpp"
 
 Mosaic::Window::Window(ApplicationData& applicationData)
     : mApplicationData(&applicationData), mSize(0, 0), mPosition(0, 0), mRunning(false)
@@ -78,23 +76,6 @@ void Mosaic::Window::Update()
             MoveEvent(event);
         }
     }
-
-    // === Frame timing ===
-    mFrameCounter++;
-
-    std::uint64_t now = SDL_GetTicks();
-
-    if (mLastTime == 0)
-        mLastTime = now;
-
-    if (now - mLastTime >= FPS_INTERVAL_MS)
-    {
-        float fps = static_cast<float>(mFrameCounter * 1000) / static_cast<float>(now - mLastTime);
-        LogEvent("FPS: {:.2f}", fps);
-
-        mFrameCounter = 0;
-        mLastTime = now;
-    }
 }
 
 void Mosaic::Window::Initialise()
@@ -102,7 +83,7 @@ void Mosaic::Window::Initialise()
 
     if (not SDL_Init(SDL_INIT_VIDEO))
     {
-        LogError("Failed to initialise windowing system");
+        mApplicationData->Console.LogError("Failed to initialise windowing system");
     }
 }
 
@@ -114,7 +95,7 @@ void Mosaic::Window::CreateWindow()
 
     if (not mHandle)
     {
-        LogError("Failed to create window");
+        mApplicationData->Console.LogError("Failed to create window");
     }
 }
 

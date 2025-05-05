@@ -1,9 +1,9 @@
 #pragma once
 
 #include "components.hpp"
+#include "console.hpp"
 #include "events.hpp"
 #include "input.hpp"
-#include "logging.hpp"
 #include "renderer.hpp"
 #include "window.hpp"
 
@@ -15,18 +15,21 @@ namespace Mosaic
 
         Window Window;
         Renderer Renderer;
+        Console Console;
 
         ComponentManager ComponentManager;
         EventManager EventManager;
         InputManager InputManager;
 
-        bool DebugMode = false;
+        bool DebugMode;
     };
 
     class Application
     {
     public:
         virtual ~Application() = default;
+
+        virtual void Setup();
 
         int Run();
 

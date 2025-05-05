@@ -1,5 +1,4 @@
-#include "../../include/application/components.hpp"
-#include "application/application.hpp"
+#include "../../include/application/application.hpp"
 
 #include <algorithm>
 

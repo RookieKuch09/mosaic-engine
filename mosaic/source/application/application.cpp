@@ -5,6 +5,10 @@ Mosaic::ApplicationData::ApplicationData()
 {
 }
 
+void Mosaic::Application::Setup()
+{
+}
+
 int Mosaic::Application::Run()
 {
     try
