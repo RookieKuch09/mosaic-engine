@@ -94,3 +94,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     add_compile_definitions(RELEASE)
 endif()
+
+# Select platform
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_compile_definitions(LINUX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_compile_definitions(WINDOWS)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    add_compile_definitions(MACOS)
+endif()

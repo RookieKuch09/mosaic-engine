@@ -1,8 +1,17 @@
 #include "../../include/application/application.hpp"
 
 Mosaic::ApplicationData::ApplicationData()
-    : Window(*this), ComponentManager(*this), InputManager(*this), Renderer(*this)
+    : Window(*this), ComponentManager(*this), InputManager(*this), Renderer(*this), DebugMode(true)
 {
+#ifdef LINUX
+    Platform = ApplicationPlatform::Linux;
+#elifdef WINDOWS
+    Platform = ApplicationPlatform::Windows;
+#elifdef MACOS
+    Platform = ApplicationPlatform::macOS;
+#else
+#error Unknown or unsupported platform
+#endif
 }
 
 void Mosaic::Application::Setup()

@@ -1,5 +1,8 @@
 #include "../../include/application/application.hpp"
 
+#include "../../include/rendering/vulkan/devices.hpp"
+#include "../../include/rendering/vulkan/instance.hpp"
+
 #include <SDL3/SDL_vulkan.h>
 
 Mosaic::Renderer::Renderer(ApplicationData& applicationData)
@@ -12,8 +15,7 @@ void Mosaic::Renderer::Create()
     SDL_Vulkan_LoadLibrary(nullptr);
 
     CreateInstance();
-    CreatePhysicalDevice();
-    CreateGraphicsQueueAndDevice();
+    CreateDevices();
     CreateSurface();
     CreateSwapchain();
     CreateRenderPass();
@@ -94,176 +96,31 @@ void Mosaic::Renderer::Update()
     mCurrentFrame = (mCurrentFrame + 1) % static_cast<uint32_t>(mInFlightFences.size());
 }
 
-void Mosaic::Renderer::GetBaseExtensions()
+void Mosaic::Renderer::CreateInstance()
 {
     unsigned int count = 0;
 
-    const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&count);
+    const char* const* rawRequestedExtensions = SDL_Vulkan_GetInstanceExtensions(&count);
 
-    if (count == 0 or extensions == nullptr)
-    {
-        mApplicationData->Console.LogError("Failed to get Vulkan instance extensions");
-    }
-    else
-    {
-        for (unsigned int index = 0; index < count; index++)
-        {
-            mBaseExtensions.push_back(extensions[index]);
-        }
-    }
+    std::vector<std::string> requestedExtensions(rawRequestedExtensions, rawRequestedExtensions + count);
+
+    std::vector<std::string> layers;
+    std::vector<std::string> extensions;
+
+    Backend::Vulkan::GetLayers(mApplicationData, layers, {});
+    Backend::Vulkan::GetInstanceExtensions(mApplicationData, extensions, {});
+
+    Backend::Vulkan::CreateInstance(mApplicationData, mInstance, layers, extensions);
 }
 
-void Mosaic::Renderer::GetDeviceExtensions()
+void Mosaic::Renderer::CreateDevices()
 {
-    std::vector<vk::ExtensionProperties> extensionProperties = mPhysicalDevice.enumerateDeviceExtensionProperties();
+    Backend::Vulkan::SelectPhysicalDevice(mApplicationData, mInstance, mPhysicalDevice);
 
-    for (const auto& extension : extensionProperties)
-    {
-        std::string name = extension.extensionName;
+    std::vector<std::string> extensions;
 
-        mDeviceExtensions.push_back(name);
-    }
-}
-
-void Mosaic::Renderer::CreateInstance()
-{
-    GetBaseExtensions();
-
-    vk::ApplicationInfo appInfo = {
-        "-",
-        VK_MAKE_VERSION(0, 0, 0),
-        "Mosaic",
-        VK_MAKE_VERSION(0, 0, 0),
-        VK_API_VERSION_1_4,
-    };
-
-    auto layers = ExtractVectorStrings(mLayers);
-    auto extensions = ExtractVectorStrings(mBaseExtensions);
-
-    vk::InstanceCreateInfo instanceInfo = {
-        {},
-        &appInfo,
-        static_cast<unsigned int>(mLayers.size()),
-        layers.data(),
-        static_cast<unsigned int>(mBaseExtensions.size()),
-        extensions.data()};
-
-    try
-    {
-        mInstance = vk::createInstanceUnique(instanceInfo);
-    }
-    catch (const vk::SystemError& error)
-    {
-        mApplicationData->Console.LogError("Failed to create Vulkan instance: {}", error.what());
-    }
-
-    if (not mInstance)
-    {
-        mApplicationData->Console.LogError("Failed to create Vulkan instance, unknown error");
-    }
-}
-
-void Mosaic::Renderer::CreatePhysicalDevice()
-{
-    std::vector<vk::PhysicalDevice> devices;
-
-    try
-    {
-        devices = mInstance->enumeratePhysicalDevices();
-    }
-    catch (const vk::SystemError& error)
-    {
-        mApplicationData->Console.LogError("Error enumerating physical devices: {}", error.what());
-    }
-
-    if (devices.empty())
-    {
-        mApplicationData->Console.LogError("No suitable GPU found by Vulkan");
-    }
-
-    for (const auto& device : devices)
-    {
-        vk::PhysicalDeviceProperties props = device.getProperties();
-        vk::PhysicalDeviceFeatures features = device.getFeatures();
-
-        if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
-        {
-            mPhysicalDevice = device;
-
-            break;
-        }
-    }
-
-    if (not mPhysicalDevice)
-    {
-        mApplicationData->Console.LogError("No suitable discrete GPU found");
-    }
-
-    GetDeviceExtensions();
-}
-
-void Mosaic::Renderer::CreateGraphicsQueueAndDevice()
-{
-    auto queueFamilies = mPhysicalDevice.getQueueFamilyProperties();
-
-    if (queueFamilies.empty())
-    {
-        mApplicationData->Console.LogError("No queue families found for the physical device");
-    }
-
-    std::optional<unsigned int> graphicsQueueIndex;
-
-    for (int index = 0; index < queueFamilies.size(); index++)
-    {
-        if (queueFamilies[index].queueFlags & vk::QueueFlagBits::eGraphics)
-        {
-            graphicsQueueIndex = index;
-
-            break;
-        }
-    }
-
-    if (not graphicsQueueIndex)
-    {
-        mApplicationData->Console.LogError("Failed to find graphics queue");
-    }
-
-    float queuePriority = 1.0;
-
-    vk::DeviceQueueCreateInfo queueCreateInfo = {
-        {},
-        *graphicsQueueIndex,
-        1,
-        &queuePriority};
-
-    auto layers = ExtractVectorStrings(mLayers);
-    auto extensions = ExtractVectorStrings(mDeviceExtensions);
-
-    vk::DeviceCreateInfo deviceCreateInfo = {
-        {},
-        1,
-        &queueCreateInfo,
-        static_cast<uint32_t>(mLayers.size()),
-        layers.data(),
-        static_cast<uint32_t>(mDeviceExtensions.size()),
-        extensions.data(),
-    };
-
-    try
-    {
-        mDevice = mPhysicalDevice.createDeviceUnique(deviceCreateInfo);
-    }
-    catch (const vk::SystemError& error)
-    {
-        mApplicationData->Console.LogError("Failed to create Vulkan device: {}", error.what());
-    }
-
-    mGraphicsQueue = mDevice->getQueue(*graphicsQueueIndex, 0);
-
-    if (not mGraphicsQueue)
-    {
-        mApplicationData->Console.LogError("Failed to get the graphics queue from the device");
-    }
+    Backend::Vulkan::GetPhysicalDeviceExtensions(mPhysicalDevice, extensions);
+    Backend::Vulkan::CreateDevice(mApplicationData, mGraphicsQueue, mDevice, mPhysicalDevice, extensions);
 }
 
 void Mosaic::Renderer::CreateSurface()

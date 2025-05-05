@@ -12,6 +12,7 @@ Whether you're building a quick game jam prototype or a full-fledged indie title
 - **Input handling**: Unified keyboard and mouse inputs via SDL3
 - **Event management**: Flexible event and communication system
 - **Component design**: Relies on Components for functionality
+- **Multiple rendering APIs**: Supports OpenGL and Vulkan
 
 ## Requirements
 
@@ -21,10 +22,9 @@ Whether you're building a quick game jam prototype or a full-fledged indie title
 
 ## Roadmap
 
-- **Stable Vulkan support**: Current afforts are focused on replacing OpenGL with Vulkan
-- **Audio playback**: Plan to integrate [OpenAL](https://www.openal.org/)
-- **Physics integration**: Lightweight physics integration
-- **Muliple rendering backends**: Potential future support for rendering backends like Metal
+- **Stable Vulkan support**: Current afforts are focused on introducing Vulkan support
+- **Audio playback**: Plans to integrate [OpenAL](https://www.openal.org/)
+- **Muliple rendering backends**: Potential future support for rendering backends like Metal or DirectX
 
 ## Third-Party Libraries
 
@@ -44,7 +44,7 @@ SDL_VIDEODRIVER=x11 ./your_app
 
 ## Windows support
 
-Mosaic is currently focused on supporting Linux and macOS support. Windows support may come later, but isn’t a priority as of now. Mosaic may build and function on Windows with some tinkering. Any contributions for Windows support are welcome!
+Mosaic is currently focused on supporting Linux and macOS support. Windows support will come later, but isn’t a priority as of now. Mosaic may build and function on Windows now with some tinkering. Any contributions for Windows support are welcome!
 
 ## Licensing
 

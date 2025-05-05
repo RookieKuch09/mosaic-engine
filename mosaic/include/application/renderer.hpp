@@ -23,12 +23,8 @@ namespace Mosaic
         void Create();
         void Update();
 
-        void GetBaseExtensions();
-        void GetDeviceExtensions();
-
         void CreateInstance();
-        void CreatePhysicalDevice();
-        void CreateGraphicsQueueAndDevice();
+        void CreateDevices();
         void CreateSurface();
         void CreateSwapchain();
         void CreateRenderPass();
@@ -50,10 +46,6 @@ namespace Mosaic
         unsigned int mCurrentFrame;
 
         ApplicationData* mApplicationData;
-
-        std::vector<std::string> mBaseExtensions;
-        std::vector<std::string> mDeviceExtensions;
-        std::vector<std::string> mLayers;
 
         std::vector<vk::Image> mSwapchainImages;
         std::vector<vk::UniqueImageView> mSwapchainImageViews;

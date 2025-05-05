@@ -9,6 +9,13 @@
 
 namespace Mosaic
 {
+    enum class ApplicationPlatform
+    {
+        Windows,
+        macOS,
+        Linux,
+    };
+
     struct ApplicationData
     {
         ApplicationData();
@@ -20,6 +27,8 @@ namespace Mosaic
         ComponentManager ComponentManager;
         EventManager EventManager;
         InputManager InputManager;
+
+        ApplicationPlatform Platform;
 
         bool DebugMode;
     };
