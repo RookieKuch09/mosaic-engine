@@ -40,7 +40,7 @@ namespace Mosaic
 
         virtual void Setup();
 
-        int Run();
+        std::int32_t Run();
 
     private:
         ApplicationData mData;

@@ -21,29 +21,30 @@ namespace Mosaic
 
     private:
         void Create();
-        void Update();
+
+        void FirstUpdate();
+        void SecondUpdate();
 
         void CreateInstance();
         void CreateDevices();
         void CreateSurface();
         void CreateSwapchain();
-        void CreateRenderPass();
-        void CreateFramebuffers();
         void CreateCommandBuffers();
         void CreateSyncObjects();
 
-        void RecordCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
-        void SubmitCommandBuffer(vk::CommandBuffer& commandBuffer, std::uint32_t imageIndex);
+        void Record();
+        void Submit();
+        void Present();
 
-        void PresentImage(std::uint32_t imageIndex);
+        void AwaitFrame();
+        void AdvanceFrame();
 
-        void SelectSurfaceFormatAndPresentMode();
-
-        std::vector<const char*> ExtractVectorStrings(const std::vector<std::string>& vector);
+        std::optional<std::uint32_t> AcquireFrame();
 
         std::uint32_t mImageCount;
-
-        unsigned int mCurrentFrame;
+        std::uint32_t mImageIndex;
+        std::uint32_t mFrameIndex;
+        std::uint32_t mGraphicsQueueFamilyIndex;
 
         ApplicationData* mApplicationData;
 

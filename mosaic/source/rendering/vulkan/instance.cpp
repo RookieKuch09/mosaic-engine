@@ -29,9 +29,9 @@ void Mosaic::Backend::Vulkan::CreateInstance(ApplicationData* applicationData, v
     vk::InstanceCreateInfo instanceInfo = {
         {},
         &appInfo,
-        static_cast<unsigned int>(clayers.size()),
+        static_cast<std::uint32_t>(clayers.size()),
         clayers.data(),
-        static_cast<unsigned int>(cextensions.size()),
+        static_cast<std::uint32_t>(cextensions.size()),
         cextensions.data()};
 
     try

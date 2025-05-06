@@ -89,7 +89,7 @@ void Mosaic::Window::Initialise()
 
 void Mosaic::Window::CreateWindow()
 {
-    unsigned int flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN;
+    std::uint32_t flags = SDL_WINDOW_VULKAN;
 
     mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.x, mSize.y, flags);
 

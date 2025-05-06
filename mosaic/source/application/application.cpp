@@ -18,7 +18,7 @@ void Mosaic::Application::Setup()
 {
 }
 
-int Mosaic::Application::Run()
+std::int32_t Mosaic::Application::Run()
 {
     try
     {
@@ -33,11 +33,13 @@ int Mosaic::Application::Run()
         while (mData.Window.mRunning)
         {
             mData.Window.Update();
-            mData.Renderer.Update();
 
             mData.InputManager.Update();
+
+            mData.Renderer.FirstUpdate();
             mData.ComponentManager.Update();
             mData.EventManager.Update();
+            mData.Renderer.SecondUpdate();
         }
 
         mData.ComponentManager.Stop();

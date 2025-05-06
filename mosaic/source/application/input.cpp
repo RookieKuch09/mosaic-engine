@@ -17,7 +17,7 @@ void Mosaic::InputManager::EmitKeyEvents()
 {
     const bool* currentKeys = SDL_GetKeyboardState(nullptr);
 
-    for (int scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
+    for (std::int32_t scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
     {
         Key key = static_cast<Key>(scancode);
 

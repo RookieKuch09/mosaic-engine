@@ -33,7 +33,7 @@ Mosaic::ComponentManager::ComponentManager(ApplicationData& applicationData)
 
 void Mosaic::ComponentManager::Start()
 {
-    for (unsigned int index = 0; index < mComponents.size(); index++)
+    for (std::uint32_t index = 0; index < mComponents.size(); index++)
     {
         auto& component = mComponents[index];
 
@@ -44,7 +44,7 @@ void Mosaic::ComponentManager::Start()
 
 void Mosaic::ComponentManager::Update()
 {
-    unsigned int index = 0;
+    std::uint32_t index = 0;
 
     while (index < mComponents.size())
     {
@@ -64,7 +64,7 @@ void Mosaic::ComponentManager::Update()
 
 void Mosaic::ComponentManager::Stop()
 {
-    for (unsigned int index = 0; index < mComponents.size(); index++)
+    for (std::uint32_t index = 0; index < mComponents.size(); index++)
     {
         mComponents[index]->Stop();
     }

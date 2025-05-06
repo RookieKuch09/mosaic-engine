@@ -9,9 +9,20 @@ namespace Mosaic
 
 namespace Mosaic::Backend::Vulkan
 {
-    void SelectPhysicalDevice(ApplicationData* applicationData, vk::UniqueInstance& instance, vk::PhysicalDevice& physicalDevice);
+    void SelectPhysicalDevice(
+        ApplicationData* applicationData,
+        vk::UniqueInstance& instance,
+        vk::PhysicalDevice& physicalDevice);
 
-    void GetPhysicalDeviceExtensions(vk::PhysicalDevice& physicalDevice, std::vector<std::string>& extensions);
+    void GetPhysicalDeviceExtensions(
+        vk::PhysicalDevice& physicalDevice,
+        std::vector<std::string>& extensions);
 
-    void CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, const std::vector<std::string>& extensions);
+    void CreateDevice(
+        ApplicationData* applicationData,
+        vk::Queue& graphicsQueue,
+        vk::UniqueDevice& device,
+        vk::PhysicalDevice& physicalDevice,
+        std::uint32_t graphicsQueueFamilyIndex,
+        const std::vector<std::string>& extensions);
 }

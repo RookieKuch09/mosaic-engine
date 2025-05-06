@@ -2,7 +2,7 @@
 
 #include "application.hpp"
 
-int main()
+std::int32_t main()
 {
     Mosaic::Application* application = Mosaic::CreateApplication();
 

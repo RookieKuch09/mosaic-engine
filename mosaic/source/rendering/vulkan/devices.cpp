@@ -33,7 +33,7 @@ void Mosaic::Backend::Vulkan::SelectPhysicalDevice(ApplicationData* applicationD
 
     if (not physicalDevice)
     {
-        applicationData->Console.LogError("No suitable discrete GPU found");
+        applicationData->Console.LogError("No suitable GPU found");
     }
 }
 
@@ -49,7 +49,7 @@ void Mosaic::Backend::Vulkan::GetPhysicalDeviceExtensions(vk::PhysicalDevice& ph
     }
 }
 
-void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, const std::vector<std::string>& extensions)
+void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, std::uint32_t graphicsQueueFamilyIndex, const std::vector<std::string>& extensions)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -70,11 +70,11 @@ void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk:
         applicationData->Console.LogError("No queue families found for the physical device");
     }
 
-    std::optional<unsigned int> graphicsQueueIndex;
+    std::optional<std::uint32_t> graphicsQueueIndex;
 
-    for (int index = 0; index < queueFamilies.size(); index++)
+    for (std::int32_t index = 0; index < queueFamilies.size(); index++)
     {
-        if (queueFamilies[index].queueFlags & vk::QueueFlagBits::eGraphics)
+        if (queueFamilies[index].queueFlags bitand vk::QueueFlagBits::eGraphics)
         {
             graphicsQueueIndex = index;
 
@@ -86,6 +86,8 @@ void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk:
     {
         applicationData->Console.LogError("Failed to find graphics queue");
     }
+
+    graphicsQueueFamilyIndex = graphicsQueueIndex.value();
 
     float queuePriority = 1.0;
 
@@ -103,9 +105,22 @@ void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk:
         &queueCreateInfo,
         0,
         nullptr,
-        static_cast<uint32_t>(rawExtensions.size()),
+        static_cast<std::uint32_t>(rawExtensions.size()),
         rawExtensions.data(),
     };
+
+    vk::PhysicalDeviceFeatures2 enabledFeatures{};
+    vk::PhysicalDeviceVulkan11Features enabled11{};
+    vk::PhysicalDeviceVulkan12Features enabled12{};
+    vk::PhysicalDeviceVulkan13Features enabled13{};
+
+    enabledFeatures.pNext = &enabled11;
+    enabled11.pNext = &enabled12;
+    enabled12.pNext = &enabled13;
+
+    physicalDevice.getFeatures2(&enabledFeatures);
+
+    deviceCreateInfo.pNext = &enabledFeatures;
 
     try
     {
