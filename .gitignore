@@ -1,0 +1,13 @@
+# Ignore all files and folders
+/*
+
+# Whitelist the engine folders
+!/mosaic
+!/cmake
+!/dependencies
+
+# Whitelist the build and distribution files
+!/CMakeLists.txt
+!/LICENSE.txt
+!/README.md
+!/.gitignore

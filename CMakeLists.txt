@@ -18,13 +18,20 @@ add_library(Mosaic)
 # Set the library's sources
 target_sources(Mosaic PRIVATE ${SOURCES})
 
-# Find all required packages
-find_package(Vulkan REQUIRED)
+# Find Vulkan (or MoltenVK) library
+if(APPLE)
+    find_library(MVK_LIB MoltenVK)
+    target_link_libraries(Mosaic PRIVATE ${MVK_LIB})
+else()
+    find_package(Vulkan REQUIRED)
+    target_link_libraries(Mosaic PRIVATE Vulkan::Vulkan)
+endif()
+
+# Find all platform-independent required packages
 find_package(SDL3 REQUIRED)
 
 # Link library against required packages
 target_link_libraries(Mosaic PRIVATE SDL3::SDL3)
-target_link_libraries(Mosaic PRIVATE Vulkan::Vulkan)
 
 # Clear install directory to avoid stale files
 install(CODE "
