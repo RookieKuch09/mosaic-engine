@@ -2,7 +2,7 @@
 #include "../../../include/application/application.hpp"
 #include <limits>
 
-void Mosaic::Backend::Vulkan::CreateSwapchain(
+void Mosaic::CreateSwapchain(
     ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::UniqueSurfaceKHR& surface,
@@ -44,7 +44,7 @@ void Mosaic::Backend::Vulkan::CreateSwapchain(
     }
 }
 
-void Mosaic::Backend::Vulkan::GetSwapchainData(
+void Mosaic::GetSwapchainData(
     ApplicationData* applicationData,
     vk::PhysicalDevice& physicalDevice,
     vk::UniqueSurfaceKHR& surface,
@@ -111,7 +111,7 @@ void Mosaic::Backend::Vulkan::GetSwapchainData(
     }
 }
 
-void Mosaic::Backend::Vulkan::CreateRenderPass(
+void Mosaic::CreateRenderPass(
     ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,
@@ -167,7 +167,7 @@ void Mosaic::Backend::Vulkan::CreateRenderPass(
     }
 }
 
-void Mosaic::Backend::Vulkan::CreateSwapchainImages(
+void Mosaic::CreateSwapchainImages(
     ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,
@@ -195,7 +195,7 @@ void Mosaic::Backend::Vulkan::CreateSwapchainImages(
     }
 }
 
-void Mosaic::Backend::Vulkan::CreateFramebuffers(
+void Mosaic::CreateFramebuffers(
     ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,

@@ -1,7 +1,7 @@
 #include "../../../include/rendering/vulkan/instance.hpp"
 #include "../../../include/application/application.hpp"
 
-void Mosaic::Backend::Vulkan::CreateInstance(ApplicationData* applicationData, vk::UniqueInstance& instance, const std::vector<std::string>& layers, const std::vector<std::string>& extensions)
+void Mosaic::CreateInstance(ApplicationData* applicationData, vk::UniqueInstance& instance, const std::vector<std::string>& layers, const std::vector<std::string>& extensions)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -49,7 +49,7 @@ void Mosaic::Backend::Vulkan::CreateInstance(ApplicationData* applicationData, v
     }
 }
 
-void Mosaic::Backend::Vulkan::GetLayers(ApplicationData* applicationData, std::vector<std::string>& layers, const std::vector<std::string>& requested)
+void Mosaic::GetLayers(ApplicationData* applicationData, std::vector<std::string>& layers, const std::vector<std::string>& requested)
 {
     std::vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
 
@@ -73,7 +73,7 @@ void Mosaic::Backend::Vulkan::GetLayers(ApplicationData* applicationData, std::v
     }
 }
 
-void Mosaic::Backend::Vulkan::GetInstanceExtensions(ApplicationData* applicationData, std::vector<std::string>& extensions, const std::vector<std::string>& requested)
+void Mosaic::GetInstanceExtensions(ApplicationData* applicationData, std::vector<std::string>& extensions, const std::vector<std::string>& requested)
 {
     std::vector<vk::ExtensionProperties> availableExtensions = vk::enumerateInstanceExtensionProperties();
 

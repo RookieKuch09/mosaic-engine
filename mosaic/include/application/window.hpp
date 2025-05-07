@@ -4,13 +4,10 @@
 #include <glm/glm.hpp>
 
 #include <string>
-#include <vector>
-
-static constexpr std::uint64_t FPS_INTERVAL_MS = 1000;
 
 namespace Mosaic
 {
-    class ApplicationData;
+    struct ApplicationData;
 
     struct WindowMoveEvent
     {
@@ -29,11 +26,12 @@ namespace Mosaic
         ~Window();
 
         glm::uvec2 GetSize() const;
-        glm::uvec2 GetPosition() const;
-        std::string GetTitle() const;
-
         void SetSize(const glm::uvec2& size);
+
+        glm::uvec2 GetPosition() const;
         void SetPosition(const glm::uvec2& position);
+
+        std::string GetTitle() const;
         void SetTitle(const std::string& title);
 
     private:
@@ -58,10 +56,8 @@ namespace Mosaic
 
         ApplicationData* mApplicationData;
 
-        std::uint64_t mFrameCounter = 0;
-        std::uint64_t mLastTime = 0;
-
         friend class Application;
-        friend class Renderer;
+        friend class VulkanRenderer;
+        friend class OpenGLRenderer;
     };
 }

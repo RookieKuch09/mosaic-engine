@@ -1,7 +1,7 @@
 #include "../../../include/rendering/vulkan/devices.hpp"
 #include "../../../include/application/application.hpp"
 
-void Mosaic::Backend::Vulkan::SelectPhysicalDevice(ApplicationData* applicationData, vk::UniqueInstance& instance, vk::PhysicalDevice& physicalDevice)
+void Mosaic::SelectPhysicalDevice(ApplicationData* applicationData, vk::UniqueInstance& instance, vk::PhysicalDevice& physicalDevice)
 {
     std::vector<vk::PhysicalDevice> devices;
 
@@ -37,7 +37,7 @@ void Mosaic::Backend::Vulkan::SelectPhysicalDevice(ApplicationData* applicationD
     }
 }
 
-void Mosaic::Backend::Vulkan::GetPhysicalDeviceExtensions(vk::PhysicalDevice& physicalDevice, std::vector<std::string>& extensions)
+void Mosaic::GetPhysicalDeviceExtensions(vk::PhysicalDevice& physicalDevice, std::vector<std::string>& extensions)
 {
     std::vector<vk::ExtensionProperties> extensionProperties = physicalDevice.enumerateDeviceExtensionProperties();
 
@@ -49,7 +49,7 @@ void Mosaic::Backend::Vulkan::GetPhysicalDeviceExtensions(vk::PhysicalDevice& ph
     }
 }
 
-void Mosaic::Backend::Vulkan::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, std::uint32_t graphicsQueueFamilyIndex, const std::vector<std::string>& extensions)
+void Mosaic::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, std::uint32_t graphicsQueueFamilyIndex, const std::vector<std::string>& extensions)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {

@@ -1,7 +1,7 @@
 #include "../../include/application/application.hpp"
 
 Mosaic::ApplicationData::ApplicationData()
-    : Window(*this), ComponentManager(*this), InputManager(*this), Renderer(*this), DebugMode(true)
+    : Window(*this), Renderer(*this), ComponentManager(*this), InputManager(*this), DebugMode(true)
 {
 #ifdef LINUX
     Platform = ApplicationPlatform::Linux;
@@ -12,6 +12,8 @@ Mosaic::ApplicationData::ApplicationData()
 #else
 #error Unknown or unsupported platform
 #endif
+
+    RendererAPI = ApplicationRendererAPI::Vulkan;
 }
 
 void Mosaic::Application::Setup()
@@ -36,10 +38,10 @@ std::int32_t Mosaic::Application::Run()
 
             mData.InputManager.Update();
 
-            mData.Renderer.FirstUpdate();
+            mData.Renderer.PreUpdate();
             mData.ComponentManager.Update();
             mData.EventManager.Update();
-            mData.Renderer.SecondUpdate();
+            mData.Renderer.PostUpdate();
         }
 
         mData.ComponentManager.Stop();

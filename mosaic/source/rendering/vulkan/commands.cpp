@@ -1,7 +1,7 @@
 #include "../../../include/rendering/vulkan/commands.hpp"
 #include "../../../include/application/application.hpp"
 
-void Mosaic::Backend::Vulkan::CreateCommandResources(
+void Mosaic::CreateCommandResources(
     ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::UniqueCommandPool& commandPool,

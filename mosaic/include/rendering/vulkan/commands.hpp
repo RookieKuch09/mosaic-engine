@@ -8,7 +8,7 @@ namespace Mosaic
     struct ApplicationData;
 }
 
-namespace Mosaic::Backend::Vulkan
+namespace Mosaic
 {
     void CreateCommandResources(
         ApplicationData* applicationData,

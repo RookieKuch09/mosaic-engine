@@ -7,7 +7,7 @@ namespace Mosaic
     struct ApplicationData;
 }
 
-namespace Mosaic::Backend::Vulkan
+namespace Mosaic
 {
     void SelectPhysicalDevice(
         ApplicationData* applicationData,
