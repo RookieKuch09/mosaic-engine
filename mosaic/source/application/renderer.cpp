@@ -12,6 +12,16 @@ Mosaic::Renderer::Renderer(ApplicationData& applicationData)
 {
 }
 
+glm::fvec4 Mosaic::Renderer::GetSwapColour() const
+{
+    return mSwapColour;
+}
+
+void Mosaic::Renderer::SetSwapColour(const glm::fvec4& colour)
+{
+    mSwapColour = colour;
+}
+
 void Mosaic::Renderer::Create()
 {
     SDL_Vulkan_LoadLibrary(nullptr);
@@ -115,7 +125,7 @@ void Mosaic::Renderer::CreateSwapchain()
         mSurface,
         mSurfaceFormat,
         mSwapchainExtent,
-        vk::PresentModeKHR::eImmediate,
+        vk::PresentModeKHR::eFifo,
         mPresentMode,
         mImageCount);
 

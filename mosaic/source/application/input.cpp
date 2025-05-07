@@ -90,7 +90,7 @@ void Mosaic::InputManager::EmitCursorEvents()
 
     const glm::uvec2& size = mApplicationData->Window.GetSize();
 
-    glm::uvec2 screenPos(x, y);
+    glm::fvec2 screenPos(x, y);
     glm::fvec2 devicePos = {(2.0 * x / size.x) - 1.0, 1.0 - (2.0 * y / size.y)};
 
     CursorMovement movement{screenPos, devicePos};

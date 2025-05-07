@@ -14,7 +14,7 @@ void Mosaic::Backend::Vulkan::CreateSwapchain(
     vk::SwapchainCreateInfoKHR createInfo{
         {},
         *surface,
-        4,
+        3,
         format.format,
         format.colorSpace,
         extent,
