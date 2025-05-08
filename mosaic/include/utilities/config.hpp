@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <toml++/toml.hpp>
 
 namespace Mosaic
