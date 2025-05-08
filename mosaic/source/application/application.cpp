@@ -3,6 +3,14 @@
 Mosaic::ApplicationData::ApplicationData()
     : Window(*this), Renderer(*this), ComponentManager(*this), InputManager(*this), DebugMode(true)
 {
+#ifdef DEBUG
+    DebugMode = true;
+#elifdef RELEASE
+    DebugMode = false;
+#else
+#error Unknown or unsupported debug type
+#endif
+
 #ifdef LINUX
     Platform = ApplicationPlatform::Linux;
 #elifdef WINDOWS
@@ -12,8 +20,6 @@ Mosaic::ApplicationData::ApplicationData()
 #else
 #error Unknown or unsupported platform
 #endif
-
-    RendererAPI = ApplicationRendererAPI::Vulkan;
 }
 
 void Mosaic::Application::Setup()
@@ -52,4 +58,9 @@ std::int32_t Mosaic::Application::Run()
     {
         return 1;
     }
+}
+
+void Mosaic::Application::SetRendererConfigPath(const std::string& path)
+{
+    mData.Renderer.SetConfigPath(path);
 }

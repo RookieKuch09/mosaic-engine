@@ -13,7 +13,7 @@ void Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Save() const
     out << mData;
 }
 
-std::vector<std::string> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::SplitKey(const std::string& key) const
+std::vector<std::string> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::SplitKey(const std::string& key)
 {
     std::vector<std::string> result;
     size_t start = 0, end = 0;

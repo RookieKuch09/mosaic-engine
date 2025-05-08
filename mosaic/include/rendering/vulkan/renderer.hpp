@@ -17,6 +17,8 @@ namespace Mosaic
         void PreUpdate() override;
         void PostUpdate() override;
 
+        void LoadConfig() override {};
+
         void CreateResources();
 
         void Record();

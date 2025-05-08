@@ -16,12 +16,6 @@ namespace Mosaic
         Linux,
     };
 
-    enum class ApplicationRendererAPI
-    {
-        OpenGL,
-        Vulkan,
-    };
-
     struct ApplicationData
     {
         ApplicationData();
@@ -35,7 +29,6 @@ namespace Mosaic
         InputManager InputManager;
 
         ApplicationPlatform Platform;
-        ApplicationRendererAPI RendererAPI;
 
         bool DebugMode;
     };
@@ -48,6 +41,8 @@ namespace Mosaic
         virtual void Setup();
 
         std::int32_t Run();
+
+        void SetRendererConfigPath(const std::string& path);
 
     private:
         ApplicationData mData;

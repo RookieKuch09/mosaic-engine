@@ -22,13 +22,22 @@ namespace Mosaic
         void Save() const;
 
         template <typename T>
+        T Get(const std::string& key, const T& fallback) const;
+
+        template <typename T, std::size_t N>
+        std::array<T, N> Get(const std::string& key, const std::array<T, N>& fallback) const;
+
+        template <typename T>
         T Get(const std::string& key) const;
 
         template <typename T>
         void Set(const std::string& key, const T& value);
 
     private:
-        std::vector<std::string> SplitKey(const std::string& key) const;
+        static std::vector<std::string> SplitKey(const std::string& key);
+
+        template <typename T, std::size_t N>
+        static std::optional<std::array<T, N>> ExtractArray(const toml::node* node);
 
         std::string mFilename;
         toml::table mData;
