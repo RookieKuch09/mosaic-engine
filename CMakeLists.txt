@@ -18,8 +18,10 @@ add_library(Mosaic)
 # Set the library's sources
 target_sources(Mosaic PRIVATE ${SOURCES})
 
-# Find Vulkan (or MoltenVK) library
+# Apple-specific crap
 if(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -isystem /opt/homebrew/opt/llvm/include/c++/v1")
+
     find_library(MVK_LIB MoltenVK)
     target_link_libraries(Mosaic PRIVATE ${MVK_LIB})
 else()
