@@ -153,7 +153,7 @@ namespace Mosaic
 
     struct CursorMovement
     {
-        glm::ivec2 ScreenSpacePosition;
+        glm::fvec2 ScreenSpacePosition;
         glm::fvec2 DeviceCoordPosition;
     };
 
