@@ -31,27 +31,27 @@ std::int32_t Mosaic::Application::Run()
 {
     try
     {
-        mData.Window.LoadConfig();
-        mData.Renderer.LoadConfig();
+        Data.Window.LoadConfig();
+        Data.Renderer.LoadConfig();
 
-        mData.Window.Create();
-        mData.Renderer.Create();
+        Data.Window.Create();
+        Data.Renderer.Create();
 
-        mData.ComponentManager.Start();
+        Data.ComponentManager.Start();
 
-        while (mData.Window.mRunning)
+        while (Data.Window.mRunning)
         {
-            mData.Window.Update();
+            Data.Window.Update();
 
-            mData.InputManager.Update();
+            Data.InputManager.Update();
 
-            mData.Renderer.PreUpdate();
-            mData.ComponentManager.Update();
-            mData.EventManager.Update();
-            mData.Renderer.PostUpdate();
+            Data.Renderer.PreUpdate();
+            Data.ComponentManager.Update();
+            Data.EventManager.Update();
+            Data.Renderer.PostUpdate();
         }
 
-        mData.ComponentManager.Stop();
+        Data.ComponentManager.Stop();
 
         return 0;
     }
@@ -61,9 +61,4 @@ std::int32_t Mosaic::Application::Run()
 
         return 1;
     }
-}
-
-void Mosaic::Application::SetRendererConfigPath(const std::string& path)
-{
-    mData.Renderer.SetConfigPath(path);
 }

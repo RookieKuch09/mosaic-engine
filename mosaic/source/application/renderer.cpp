@@ -1,6 +1,7 @@
 #include "../../include/application/renderer.hpp"
 #include "../../include/application/application.hpp"
 
+#include "../../include/rendering/opengl/renderer.hpp"
 #include "../../include/rendering/vulkan/renderer.hpp"
 
 #include "../../include/utilities/config.hpp"
@@ -20,11 +21,6 @@ glm::fvec4 Mosaic::Renderer::GetClearColour() const
 void Mosaic::Renderer::SetClearColour(const glm::fvec4& colour)
 {
     mClearColour = colour;
-}
-
-Mosaic::VSyncMode Mosaic::Renderer::GetVSyncMode() const
-{
-    return mVSyncMode;
 }
 
 Mosaic::RendererAPI Mosaic::Renderer::GetRendererAPI() const
@@ -54,16 +50,17 @@ void Mosaic::Renderer::Create()
         }
         case (RendererAPI::OpenGL):
         {
-            throw;
+            mRendererInstance = new OpenGLRenderer(mApplicationData);
 
             break;
         }
     }
 
     mRendererInstance->mClearColour = mClearColour;
-    mRendererInstance->mVSyncMode = mVSyncMode;
+    mRendererInstance->mVSync = mVSync;
     mRendererInstance->mConfigPath = mConfigPath;
 
+    mRendererInstance->LoadConfig();
     mRendererInstance->Create();
 }
 
@@ -83,9 +80,9 @@ void Mosaic::Renderer::LoadConfig()
 
     config.Open(mConfigPath);
 
-    auto api = config.Get<std::string>("renderer.api");
-    auto clearColour = config.Get<float, 4>("renderer.clearColour", {0.0, 0.0, 0.0, 1.0});
-    auto vsyncMode = config.Get<std::string>("renderer.vsyncMode", "StrictVSync");
+    auto api = config.Get<std::string>("Renderer.API");
+    auto clearColour = config.Get<float, 4>("Renderer.ClearColour", {0.0, 0.0, 0.0, 1.0});
+    auto vsync = config.Get<std::string>("Renderer.VSync");
 
     if (api == "OpenGL")
     {
@@ -100,21 +97,21 @@ void Mosaic::Renderer::LoadConfig()
         Console::LogError("Invalid rendering API \"{}\"", api);
     }
 
-    if (vsyncMode == "Disabled")
+    if (vsync == "Disabled")
     {
-        mVSyncMode = VSyncMode::Disabled;
+        mVSync = RendererVSync::Disabled;
     }
-    else if (vsyncMode == "StrictVSync")
+    else if (vsync == "Strict")
     {
-        mVSyncMode = VSyncMode::StrictVSync;
+        mVSync = RendererVSync::Strict;
     }
-    else if (vsyncMode == "RelaxedVSync")
+    else if (vsync == "Relaxed")
     {
-        mVSyncMode = VSyncMode::RelaxedVSync;
+        mVSync = RendererVSync::Relaxed;
     }
     else
     {
-        Console::LogError("Invalid VSync mode \"{}\"", vsyncMode);
+        Console::Throw("Unsupported VSync mode for Renderer: {}", vsync);
     }
 
     mClearColour.r = clearColour[0];

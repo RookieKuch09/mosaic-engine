@@ -108,31 +108,40 @@ void Mosaic::Window::Initialise()
 {
     if (not SDL_Init(SDL_INIT_VIDEO))
     {
-        Console::LogError("Failed to initialise windowing system");
+        Console::Throw("Failed to initialise windowing system");
     }
 }
 
 void Mosaic::Window::CreateWindow()
 {
-    std::uint32_t flags = 0;
+    std::uint64_t flags = 0;
 
     switch (mApplicationData->Renderer.GetRendererAPI())
     {
         case (RendererAPI::Vulkan):
         {
-            flags = SDL_WINDOW_VULKAN;
+            flags |= SDL_WINDOW_VULKAN;
+
+            break;
         }
         case (RendererAPI::OpenGL):
         {
-            flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+            flags |= SDL_WINDOW_OPENGL;
+
+            break;
         }
+    }
+
+    if (mResizable)
+    {
+        flags |= SDL_WINDOW_RESIZABLE;
     }
 
     mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.x, mSize.y, flags);
 
     if (not mHandle)
     {
-        Console::LogError("Failed to create window");
+        Console::Throw("Failed to create window");
     }
 
     SDL_SetWindowFullscreen(mHandle, mFullscreen);
@@ -165,9 +174,10 @@ void Mosaic::Window::LoadConfig()
 
     file.Open(mConfigPath);
 
-    mTitle = file.Get<std::string>("window.title", "New Window - Mosaic");
-    mFullscreen = file.Get<bool>("window.fullscreen", false);
-    auto size = file.Get<std::uint32_t, 2>("window.size", {800, 600});
+    mTitle = file.Get<std::string>("Window.Title");
+    mFullscreen = file.Get<bool>("Window.Fullscreen", false);
+    mResizable = file.Get<bool>("Window.Resizable", false);
+    auto size = file.Get<std::uint32_t, 2>("Window.Size");
 
     mSize.x = size[0];
     mSize.y = size[1];

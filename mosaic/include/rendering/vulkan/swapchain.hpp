@@ -7,6 +7,8 @@
 namespace Mosaic
 {
     struct ApplicationData;
+
+    enum class RendererVSync : int;
 }
 
 namespace Mosaic
@@ -16,6 +18,7 @@ namespace Mosaic
         vk::UniqueSurfaceKHR& surface,
         vk::SurfaceFormatKHR& format,
         vk::Extent2D extent,
+        std::uint32_t minBuffers,
         vk::PresentModeKHR presentMode,
         vk::UniqueSwapchainKHR& swapchain);
 
@@ -24,7 +27,7 @@ namespace Mosaic
         vk::UniqueSurfaceKHR& surface,
         vk::SurfaceFormatKHR& format,
         vk::Extent2D& extent,
-        vk::PresentModeKHR preferredMode,
+        RendererVSync preferredMode,
         vk::PresentModeKHR& presentMode,
         const glm::uvec2& size,
         uint32_t& imageCount);

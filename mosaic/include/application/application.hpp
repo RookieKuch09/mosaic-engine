@@ -40,10 +40,7 @@ namespace Mosaic
 
         std::int32_t Run();
 
-        void SetRendererConfigPath(const std::string& path);
-
-    private:
-        ApplicationData mData;
+        ApplicationData Data;
     };
 
     Application* CreateApplication();

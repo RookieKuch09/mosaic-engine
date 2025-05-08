@@ -3,6 +3,7 @@
 #include "../../application/renderer.hpp"
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_enums.hpp>
 
 namespace Mosaic
 {
@@ -17,7 +18,7 @@ namespace Mosaic
         void PreUpdate() override;
         void PostUpdate() override;
 
-        void LoadConfig() override {};
+        void LoadConfig() override;
 
         void CreateResources();
 

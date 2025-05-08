@@ -1,18 +1,21 @@
 #include "../../../include/rendering/vulkan/swapchain.hpp"
+
 #include "../../../include/application/console.hpp"
+#include "../../../include/application/renderer.hpp"
 
 void Mosaic::CreateSwapchain(
     vk::UniqueDevice& device,
     vk::UniqueSurfaceKHR& surface,
     vk::SurfaceFormatKHR& format,
     vk::Extent2D extent,
+    std::uint32_t minBuffers,
     vk::PresentModeKHR presentMode,
     vk::UniqueSwapchainKHR& swapchain)
 {
     vk::SwapchainCreateInfoKHR createInfo{
         {},
         *surface,
-        3,
+        minBuffers,
         format.format,
         format.colorSpace,
         extent,
@@ -35,7 +38,7 @@ void Mosaic::GetSwapchainData(
     vk::UniqueSurfaceKHR& surface,
     vk::SurfaceFormatKHR& format,
     vk::Extent2D& extent,
-    vk::PresentModeKHR preferredMode,
+    RendererVSync preferredMode,
     vk::PresentModeKHR& presentMode,
     const glm::uvec2& size,
     std::uint32_t& imageCount)
@@ -61,27 +64,53 @@ void Mosaic::GetSwapchainData(
 
     format = (itf != formats.end() ? *itf : formats[0]);
 
-    if (std::ranges::find(presentModes, preferredMode) != presentModes.end())
+    auto supports = [&](vk::PresentModeKHR mode)
     {
-        presentMode = preferredMode;
+        return std::find(presentModes.begin(), presentModes.end(), mode) != presentModes.end();
+    };
+
+    std::vector<vk::PresentModeKHR> fallbackList;
+
+    switch (preferredMode)
+    {
+        case RendererVSync::Disabled:
+            fallbackList = {
+                vk::PresentModeKHR::eImmediate,
+                vk::PresentModeKHR::eMailbox,
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
+
+        case RendererVSync::Strict:
+            fallbackList = {
+                vk::PresentModeKHR::eMailbox,
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
+
+        case RendererVSync::Relaxed:
+            fallbackList = {
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
     }
-    else if (std::ranges::find(presentModes, vk::PresentModeKHR::eMailbox) != presentModes.end())
+
+    auto it = std::find_if(fallbackList.begin(), fallbackList.end(), supports);
+    presentMode = (it != fallbackList.end() ? *it : vk::PresentModeKHR::eFifo);
+
+    imageCount = std::max(2u, caps.minImageCount);
+
+    if (caps.maxImageCount > 0)
     {
-        presentMode = vk::PresentModeKHR::eMailbox;
-    }
-    else if (std::ranges::find(presentModes, vk::PresentModeKHR::eImmediate) != presentModes.end())
-    {
-        presentMode = vk::PresentModeKHR::eImmediate;
+        imageCount = std::min(imageCount + 1, caps.maxImageCount);
     }
     else
     {
-        presentMode = vk::PresentModeKHR::eFifo;
+        imageCount += 1;
     }
-
-    uint32_t minCount = caps.minImageCount;
-    uint32_t maxCount = caps.maxImageCount == 0 ? std::numeric_limits<std::uint32_t>::max() : caps.maxImageCount;
-
-    imageCount = std::clamp(2u, minCount, maxCount);
 
     if (caps.currentExtent.width != std::numeric_limits<std::uint32_t>::max())
     {

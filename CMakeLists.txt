@@ -18,7 +18,7 @@ add_library(Mosaic)
 # Set the library's sources
 target_sources(Mosaic PRIVATE ${SOURCES})
 
-# Apple-specific crap
+# Handle Apple stuff
 if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -isystem /opt/homebrew/opt/llvm/include/c++/v1")
 
@@ -30,9 +30,13 @@ else()
 endif()
 
 # Find all platform-independent required packages
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(SDL3 REQUIRED)
 
 # Link library against required packages
+target_link_libraries(Mosaic PRIVATE GLEW::GLEW)
+target_link_libraries(Mosaic PRIVATE OpenGL::GL)
 target_link_libraries(Mosaic PRIVATE SDL3::SDL3)
 
 # Clear install directory to avoid stale files

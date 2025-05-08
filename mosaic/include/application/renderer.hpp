@@ -8,11 +8,11 @@ namespace Mosaic
 {
     struct ApplicationData;
 
-    enum class VSyncMode
+    enum class RendererVSync
     {
         Disabled,
-        StrictVSync,
-        RelaxedVSync,
+        Strict,
+        Relaxed,
     };
 
     enum class RendererAPI
@@ -32,7 +32,8 @@ namespace Mosaic
         virtual void LoadConfig() = 0;
 
         glm::fvec4 mClearColour;
-        VSyncMode mVSyncMode;
+
+        RendererVSync mVSync;
 
         std::string mConfigPath;
 
@@ -46,8 +47,6 @@ namespace Mosaic
 
         glm::fvec4 GetClearColour() const;
         void SetClearColour(const glm::fvec4& colour);
-
-        VSyncMode GetVSyncMode() const;
 
         RendererAPI GetRendererAPI() const;
 
@@ -66,9 +65,8 @@ namespace Mosaic
         void LoadConfig();
 
         glm::fvec4 mClearColour;
-
-        VSyncMode mVSyncMode;
         RendererAPI mAPI;
+        RendererVSync mVSync;
 
         std::string mConfigPath;
 

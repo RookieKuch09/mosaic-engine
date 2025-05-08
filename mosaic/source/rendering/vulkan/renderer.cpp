@@ -7,6 +7,8 @@
 #include "../../../include/rendering/vulkan/renderer.hpp"
 #include "../../../include/rendering/vulkan/swapchain.hpp"
 
+#include "../../../include/utilities/config.hpp"
+
 #include <SDL3/SDL_vulkan.h>
 
 Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
@@ -86,7 +88,7 @@ void Mosaic::VulkanRenderer::CreateResources()
 
     if (not SDL_Vulkan_CreateSurface(mApplicationData->Window.mHandle, *mInstance, nullptr, &rawSurface))
     {
-        Console::LogError("Failed to create Vulkan surface");
+        Console::Throw("Failed to create Vulkan surface");
     }
 
     mSurface = vk::UniqueSurfaceKHR(rawSurface, *mInstance);
@@ -96,7 +98,7 @@ void Mosaic::VulkanRenderer::CreateResources()
         mSurface,
         mSurfaceFormat,
         mSwapchainExtent,
-        vk::PresentModeKHR::eFifo,
+        mVSync,
         mPresentMode,
         mApplicationData->Window.GetSize(),
         mImageCount);
@@ -106,6 +108,7 @@ void Mosaic::VulkanRenderer::CreateResources()
         mSurface,
         mSurfaceFormat,
         mSwapchainExtent,
+        mImageCount,
         mPresentMode,
         mSwapchain);
 
@@ -160,57 +163,42 @@ void Mosaic::VulkanRenderer::Record()
 {
     if (not mRenderPass)
     {
-        Console::LogError("Render pass is null!");
+        Console::Throw("Render pass is null!");
     }
 
     if (mImageIndex >= mSwapchainFramebuffers.size())
     {
-        Console::LogError("Invalid image index: {} (framebuffers size: {})", mImageIndex, mSwapchainFramebuffers.size());
+        Console::Throw("Invalid image index: {} (framebuffers size: {})", mImageIndex, mSwapchainFramebuffers.size());
     }
 
     if (not mSwapchainFramebuffers[mImageIndex])
     {
-        Console::LogError("Framebuffer for image {} is null!", mImageIndex);
+        Console::Throw("Framebuffer for image {} is null!", mImageIndex);
     }
 
     if (mSwapchainExtent.width == 0 or mSwapchainExtent.height == 0)
     {
-        Console::LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
+        Console::Throw("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
     }
 
     auto& commandBuffer = mCommandBuffers[mImageIndex];
 
-    try
-    {
-        vk::CommandBufferBeginInfo beginInfo = {};
-        commandBuffer->begin(beginInfo);
+    vk::CommandBufferBeginInfo beginInfo = {};
+    commandBuffer->begin(beginInfo);
 
-        vk::RenderPassBeginInfo renderPassBeginInfo = {
-            *mRenderPass,
-            *mSwapchainFramebuffers[mImageIndex],
-            vk::Rect2D({0, 0}, mSwapchainExtent),
-            0,
-            nullptr};
+    vk::RenderPassBeginInfo renderPassBeginInfo = {
+        *mRenderPass,
+        *mSwapchainFramebuffers[mImageIndex],
+        vk::Rect2D({0, 0}, mSwapchainExtent),
+        0,
+        nullptr};
 
-        vk::ClearValue clearColor = vk::ClearValue().setColor({mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.w});
+    vk::ClearValue clearColor = vk::ClearValue().setColor({mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.w});
 
-        renderPassBeginInfo.clearValueCount = 1;
-        renderPassBeginInfo.pClearValues = &clearColor;
+    renderPassBeginInfo.clearValueCount = 1;
+    renderPassBeginInfo.pClearValues = &clearColor;
 
-        commandBuffer->beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
-    }
-    catch (const vk::SystemError& error)
-    {
-        Console::LogError("Vulkan system error during command buffer recording: {}", error.what());
-    }
-    catch (const std::exception& exception)
-    {
-        Console::LogError("Standard exception during command buffer recording: {}", exception.what());
-    }
-    catch (...)
-    {
-        Console::LogError("Unknown error during command buffer recording!");
-    }
+    commandBuffer->beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 }
 
 void Mosaic::VulkanRenderer::Submit()
@@ -233,14 +221,7 @@ void Mosaic::VulkanRenderer::Submit()
         1,
         signalSemaphores);
 
-    try
-    {
-        mGraphicsQueue.submit(submitInfo, *mInFlightFences[mFrameIndex]);
-    }
-    catch (const vk::SystemError& error)
-    {
-        Console::LogError("Failed to submit command buffer: {}", error.what());
-    }
+    mGraphicsQueue.submit(submitInfo, *mInFlightFences[mFrameIndex]);
 }
 
 void Mosaic::VulkanRenderer::Present()
@@ -313,4 +294,9 @@ std::optional<std::uint32_t> Mosaic::VulkanRenderer::AcquireFrame()
 void Mosaic::VulkanRenderer::AdvanceFrame()
 {
     mFrameIndex = (mFrameIndex + 1) % static_cast<std::uint32_t>(mInFlightFences.size());
+}
+
+void Mosaic::VulkanRenderer::LoadConfig()
+{
+    TOMLFile file(mConfigPath);
 }

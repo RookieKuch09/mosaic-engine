@@ -61,6 +61,7 @@ namespace Mosaic
 
         bool mRunning;
         bool mFullscreen;
+        bool mResizable;
 
         SDL_Window* mHandle;
 
