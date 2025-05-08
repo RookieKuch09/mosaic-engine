@@ -18,6 +18,9 @@ namespace Mosaic
     class ConfigFile<ConfigFiletype::TOML>
     {
     public:
+        ConfigFile() = default;
+        ConfigFile(const std::string& path);
+
         void Open(const std::string& path);
         void Save() const;
 
@@ -26,6 +29,9 @@ namespace Mosaic
 
         template <typename T, std::size_t N>
         std::array<T, N> Get(const std::string& key, const std::array<T, N>& fallback) const;
+
+        template <typename T, std::size_t N>
+        std::array<T, N> Get(const std::string& key) const;
 
         template <typename T>
         T Get(const std::string& key) const;

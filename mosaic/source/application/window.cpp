@@ -1,7 +1,11 @@
 #include "../../include/application/application.hpp"
 
+#include "../../include/utilities/config.hpp"
+
+#include <SDL3/SDL_video.h>
+
 Mosaic::Window::Window(ApplicationData& applicationData)
-    : mApplicationData(&applicationData), mSize(0, 0), mPosition(0, 0), mRunning(false)
+    : mSize(0, 0), mPosition(0, 0), mTitle(""), mConfigPath(""), mRunning(false), mFullscreen(false), mApplicationData(&applicationData)
 {
     Initialise();
 }
@@ -48,6 +52,28 @@ void Mosaic::Window::SetTitle(const std::string& title)
     SDL_SetWindowTitle(mHandle, title.c_str());
 }
 
+std::string Mosaic::Window::GetConfigPath() const
+{
+    return mConfigPath;
+}
+
+void Mosaic::Window::SetConfigPath(const std::string& path)
+{
+    mConfigPath = path;
+}
+
+bool Mosaic::Window::GetFullscreenState() const
+{
+    return mFullscreen;
+}
+
+void Mosaic::Window::SetFullscreenState(bool fullscreen)
+{
+    mFullscreen = fullscreen;
+
+    SDL_SetWindowFullscreen(mHandle, mFullscreen);
+}
+
 void Mosaic::Window::Create()
 {
     CreateWindow();
@@ -80,23 +106,36 @@ void Mosaic::Window::Update()
 
 void Mosaic::Window::Initialise()
 {
-
     if (not SDL_Init(SDL_INIT_VIDEO))
     {
-        mApplicationData->Console.LogError("Failed to initialise windowing system");
+        Console::LogError("Failed to initialise windowing system");
     }
 }
 
 void Mosaic::Window::CreateWindow()
 {
-    std::uint32_t flags = SDL_WINDOW_VULKAN;
+    std::uint32_t flags = 0;
+
+    switch (mApplicationData->Renderer.GetRendererAPI())
+    {
+        case (RendererAPI::Vulkan):
+        {
+            flags = SDL_WINDOW_VULKAN;
+        }
+        case (RendererAPI::OpenGL):
+        {
+            flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
+        }
+    }
 
     mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.x, mSize.y, flags);
 
     if (not mHandle)
     {
-        mApplicationData->Console.LogError("Failed to create window");
+        Console::LogError("Failed to create window");
     }
+
+    SDL_SetWindowFullscreen(mHandle, mFullscreen);
 }
 
 void Mosaic::Window::QuitEvent()
@@ -118,4 +157,18 @@ void Mosaic::Window::MoveEvent(const SDL_Event& event)
     mPosition.y = event.window.data2;
 
     mApplicationData->EventManager.Emit<WindowMoveEvent>({mPosition});
+}
+
+void Mosaic::Window::LoadConfig()
+{
+    TOMLFile file;
+
+    file.Open(mConfigPath);
+
+    mTitle = file.Get<std::string>("window.title", "New Window - Mosaic");
+    mFullscreen = file.Get<bool>("window.fullscreen", false);
+    auto size = file.Get<std::uint32_t, 2>("window.size", {800, 600});
+
+    mSize.x = size[0];
+    mSize.y = size[1];
 }

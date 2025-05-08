@@ -1,7 +1,7 @@
 #include "../../../include/rendering/vulkan/instance.hpp"
-#include "../../../include/application/application.hpp"
+#include "../../../include/application/console.hpp"
 
-void Mosaic::CreateInstance(ApplicationData* applicationData, vk::UniqueInstance& instance, const std::vector<std::string>& layers, const std::vector<std::string>& extensions)
+void Mosaic::CreateInstance(vk::UniqueInstance& instance, const std::vector<std::string>& layers, const std::vector<std::string>& extensions)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -34,22 +34,15 @@ void Mosaic::CreateInstance(ApplicationData* applicationData, vk::UniqueInstance
         static_cast<std::uint32_t>(cextensions.size()),
         cextensions.data()};
 
-    try
-    {
-        instance = vk::createInstanceUnique(instanceInfo);
-    }
-    catch (const vk::SystemError& error)
-    {
-        applicationData->Console.LogError("Failed to create Vulkan instance: {}", error.what());
-    }
+    instance = vk::createInstanceUnique(instanceInfo);
 
     if (not instance)
     {
-        applicationData->Console.LogError("Failed to create Vulkan instance, unknown error");
+        Console::Throw("Failed to create Vulkan instance, unknown error");
     }
 }
 
-void Mosaic::GetLayers(ApplicationData* applicationData, std::vector<std::string>& layers, const std::vector<std::string>& requested)
+void Mosaic::GetLayers(std::vector<std::string>& layers, const std::vector<std::string>& requested)
 {
     std::vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
 
@@ -68,12 +61,12 @@ void Mosaic::GetLayers(ApplicationData* applicationData, std::vector<std::string
         }
         else
         {
-            applicationData->Console.LogWarning("Requested Vulkan layer is not available: {}", request);
+            Console::LogWarning("Requested Vulkan layer is not available: {}", request);
         }
     }
 }
 
-void Mosaic::GetInstanceExtensions(ApplicationData* applicationData, std::vector<std::string>& extensions, const std::vector<std::string>& requested)
+void Mosaic::GetInstanceExtensions(std::vector<std::string>& extensions, const std::vector<std::string>& requested)
 {
     std::vector<vk::ExtensionProperties> availableExtensions = vk::enumerateInstanceExtensionProperties();
 
@@ -92,7 +85,7 @@ void Mosaic::GetInstanceExtensions(ApplicationData* applicationData, std::vector
         }
         else
         {
-            applicationData->Console.LogWarning("Requested Vulkan base extension is not available: {}", request);
+            Console::LogWarning("Requested Vulkan base extension is not available: {}", request);
         }
     }
 }

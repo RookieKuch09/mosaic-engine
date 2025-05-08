@@ -1,4 +1,5 @@
 #include "../../../include/application/application.hpp"
+#include "../../../include/application/console.hpp"
 
 #include "../../../include/rendering/vulkan/commands.hpp"
 #include "../../../include/rendering/vulkan/devices.hpp"
@@ -54,23 +55,19 @@ void Mosaic::VulkanRenderer::CreateResources()
     std::vector<std::string> deviceExtensions;
 
     GetLayers(
-        mApplicationData,
         layers,
         {});
 
     GetInstanceExtensions(
-        mApplicationData,
         instanceExtensions,
         requestedInstanceExtensions);
 
     CreateInstance(
-        mApplicationData,
         mInstance,
         layers,
         instanceExtensions);
 
     SelectPhysicalDevice(
-        mApplicationData,
         mInstance,
         mPhysicalDevice);
 
@@ -79,7 +76,6 @@ void Mosaic::VulkanRenderer::CreateResources()
         deviceExtensions);
 
     CreateDevice(
-        mApplicationData,
         mGraphicsQueue,
         mDevice,
         mPhysicalDevice,
@@ -90,23 +86,22 @@ void Mosaic::VulkanRenderer::CreateResources()
 
     if (not SDL_Vulkan_CreateSurface(mApplicationData->Window.mHandle, *mInstance, nullptr, &rawSurface))
     {
-        mApplicationData->Console.LogError("Failed to create Vulkan surface");
+        Console::LogError("Failed to create Vulkan surface");
     }
 
     mSurface = vk::UniqueSurfaceKHR(rawSurface, *mInstance);
 
     GetSwapchainData(
-        mApplicationData,
         mPhysicalDevice,
         mSurface,
         mSurfaceFormat,
         mSwapchainExtent,
         vk::PresentModeKHR::eFifo,
         mPresentMode,
+        mApplicationData->Window.GetSize(),
         mImageCount);
 
     CreateSwapchain(
-        mApplicationData,
         mDevice,
         mSurface,
         mSurfaceFormat,
@@ -120,20 +115,17 @@ void Mosaic::VulkanRenderer::CreateResources()
     mSwapchainFramebuffers.reserve(mSwapchainImages.size());
 
     CreateRenderPass(
-        mApplicationData,
         mDevice,
         mSurfaceFormat,
         mRenderPass);
 
     CreateSwapchainImages(
-        mApplicationData,
         mDevice,
         mSurfaceFormat,
         mSwapchainImages,
         mSwapchainImageViews);
 
     CreateFramebuffers(
-        mApplicationData,
         mDevice,
         mSurfaceFormat,
         mRenderPass,
@@ -142,7 +134,6 @@ void Mosaic::VulkanRenderer::CreateResources()
         mSwapchainImageViews);
 
     CreateCommandResources(
-        mApplicationData,
         mDevice,
         mCommandPool,
         mCommandBuffers,
@@ -169,22 +160,22 @@ void Mosaic::VulkanRenderer::Record()
 {
     if (not mRenderPass)
     {
-        mApplicationData->Console.LogError("Render pass is null!");
+        Console::LogError("Render pass is null!");
     }
 
     if (mImageIndex >= mSwapchainFramebuffers.size())
     {
-        mApplicationData->Console.LogError("Invalid image index: {} (framebuffers size: {})", mImageIndex, mSwapchainFramebuffers.size());
+        Console::LogError("Invalid image index: {} (framebuffers size: {})", mImageIndex, mSwapchainFramebuffers.size());
     }
 
     if (not mSwapchainFramebuffers[mImageIndex])
     {
-        mApplicationData->Console.LogError("Framebuffer for image {} is null!", mImageIndex);
+        Console::LogError("Framebuffer for image {} is null!", mImageIndex);
     }
 
     if (mSwapchainExtent.width == 0 or mSwapchainExtent.height == 0)
     {
-        mApplicationData->Console.LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
+        Console::LogError("Swapchain extent is invalid: {}x{}", mSwapchainExtent.width, mSwapchainExtent.height);
     }
 
     auto& commandBuffer = mCommandBuffers[mImageIndex];
@@ -210,15 +201,15 @@ void Mosaic::VulkanRenderer::Record()
     }
     catch (const vk::SystemError& error)
     {
-        mApplicationData->Console.LogError("Vulkan system error during command buffer recording: {}", error.what());
+        Console::LogError("Vulkan system error during command buffer recording: {}", error.what());
     }
     catch (const std::exception& exception)
     {
-        mApplicationData->Console.LogError("Standard exception during command buffer recording: {}", exception.what());
+        Console::LogError("Standard exception during command buffer recording: {}", exception.what());
     }
     catch (...)
     {
-        mApplicationData->Console.LogError("Unknown error during command buffer recording!");
+        Console::LogError("Unknown error during command buffer recording!");
     }
 }
 
@@ -248,7 +239,7 @@ void Mosaic::VulkanRenderer::Submit()
     }
     catch (const vk::SystemError& error)
     {
-        mApplicationData->Console.LogError("Failed to submit command buffer: {}", error.what());
+        Console::LogError("Failed to submit command buffer: {}", error.what());
     }
 }
 
@@ -262,24 +253,35 @@ void Mosaic::VulkanRenderer::Present()
         &mImageIndex,
         nullptr);
 
-    try
-    {
-        auto result = mGraphicsQueue.presentKHR(presentInfo);
+    vk::Result result = mGraphicsQueue.presentKHR(presentInfo);
 
-        if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
-        {
-        }
-    }
-    catch (const vk::SystemError& error)
+    if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
     {
-        mApplicationData->Console.LogError("Failed to present swapchain image: {}", error.what());
+        // TODO: manage swapchain reconstruction
     }
 }
 
 void Mosaic::VulkanRenderer::AwaitFrame()
 {
-    mDevice->waitForFences(1, &*mInFlightFences[mFrameIndex], true, std::numeric_limits<std::uint64_t>::max());
-    mDevice->resetFences(1, &*mInFlightFences[mFrameIndex]);
+    vk::Result result;
+
+    result = mDevice->waitForFences(1, &*mInFlightFences[mFrameIndex], true, std::numeric_limits<std::uint64_t>::max());
+
+    if (result != vk::Result::eSuccess)
+    {
+        std::string name = vk::to_string(result);
+
+        Console::Throw("Vulkan exception: {}", name);
+    }
+
+    result = mDevice->resetFences(1, &*mInFlightFences[mFrameIndex]);
+
+    if (result != vk::Result::eSuccess)
+    {
+        std::string name = vk::to_string(result);
+
+        Console::Throw("Vulkan exception: {}", name);
+    }
 }
 
 std::optional<std::uint32_t> Mosaic::VulkanRenderer::AcquireFrame()
@@ -300,7 +302,7 @@ std::optional<std::uint32_t> Mosaic::VulkanRenderer::AcquireFrame()
 
     if (result != vk::Result::eSuccess)
     {
-        mApplicationData->Console.LogError("Failed to acquire swapchain image: {}", vk::to_string(result));
+        Console::Throw("Failed to acquire swapchain image: {}", vk::to_string(result));
 
         return std::nullopt;
     }

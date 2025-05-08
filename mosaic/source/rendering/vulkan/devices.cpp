@@ -1,29 +1,24 @@
 #include "../../../include/rendering/vulkan/devices.hpp"
-#include "../../../include/application/application.hpp"
+#include "../../../include/application/console.hpp"
 
-void Mosaic::SelectPhysicalDevice(ApplicationData* applicationData, vk::UniqueInstance& instance, vk::PhysicalDevice& physicalDevice)
+void Mosaic::SelectPhysicalDevice(
+    vk::UniqueInstance& instance,
+    vk::PhysicalDevice& physicalDevice)
 {
     std::vector<vk::PhysicalDevice> devices;
 
-    try
-    {
-        devices = instance->enumeratePhysicalDevices();
-    }
-    catch (const vk::SystemError& error)
-    {
-        applicationData->Console.LogError("Error enumerating physical devices: {}", error.what());
-    }
+    devices = instance->enumeratePhysicalDevices();
 
     if (devices.empty())
     {
-        applicationData->Console.LogError("No suitable GPU found by Vulkan");
+        Console::Throw("No suitable GPU found by Vulkan");
     }
 
     for (const auto& device : devices)
     {
         vk::PhysicalDeviceProperties props = device.getProperties();
 
-        if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu or props.deviceType == vk::PhysicalDeviceType::eIntegratedGpu)
+        if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu or props.deviceType == vk::PhysicalDeviceType::eIntegratedGpu or props.deviceType == vk::PhysicalDeviceType::eVirtualGpu)
         {
             physicalDevice = device;
 
@@ -33,11 +28,13 @@ void Mosaic::SelectPhysicalDevice(ApplicationData* applicationData, vk::UniqueIn
 
     if (not physicalDevice)
     {
-        applicationData->Console.LogError("No suitable GPU found");
+        Console::Throw("No suitable GPU found");
     }
 }
 
-void Mosaic::GetPhysicalDeviceExtensions(vk::PhysicalDevice& physicalDevice, std::vector<std::string>& extensions)
+void Mosaic::GetPhysicalDeviceExtensions(
+    vk::PhysicalDevice& physicalDevice,
+    std::vector<std::string>& extensions)
 {
     std::vector<vk::ExtensionProperties> extensionProperties = physicalDevice.enumerateDeviceExtensionProperties();
 
@@ -49,7 +46,12 @@ void Mosaic::GetPhysicalDeviceExtensions(vk::PhysicalDevice& physicalDevice, std
     }
 }
 
-void Mosaic::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQueue, vk::UniqueDevice& device, vk::PhysicalDevice& physicalDevice, std::uint32_t graphicsQueueFamilyIndex, const std::vector<std::string>& extensions)
+void Mosaic::CreateDevice(
+    vk::Queue& graphicsQueue,
+    vk::UniqueDevice& device,
+    vk::PhysicalDevice& physicalDevice,
+    std::uint32_t& graphicsQueueFamilyIndex,
+    const std::vector<std::string>& extensions)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -67,7 +69,7 @@ void Mosaic::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQ
 
     if (queueFamilies.empty())
     {
-        applicationData->Console.LogError("No queue families found for the physical device");
+        Console::Throw("No queue families found for the physical device");
     }
 
     std::optional<std::uint32_t> graphicsQueueIndex;
@@ -84,7 +86,7 @@ void Mosaic::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQ
 
     if (not graphicsQueueIndex)
     {
-        applicationData->Console.LogError("Failed to find graphics queue");
+        Console::Throw("Failed to find graphics queue");
     }
 
     graphicsQueueFamilyIndex = graphicsQueueIndex.value();
@@ -122,19 +124,12 @@ void Mosaic::CreateDevice(ApplicationData* applicationData, vk::Queue& graphicsQ
 
     deviceCreateInfo.pNext = &enabledFeatures;
 
-    try
-    {
-        device = physicalDevice.createDeviceUnique(deviceCreateInfo);
-    }
-    catch (const vk::SystemError& error)
-    {
-        applicationData->Console.LogError("Failed to create Vulkan device: {}", error.what());
-    }
+    device = physicalDevice.createDeviceUnique(deviceCreateInfo);
 
     graphicsQueue = device->getQueue(*graphicsQueueIndex, 0);
 
     if (not graphicsQueue)
     {
-        applicationData->Console.LogError("Failed to get the graphics queue from the device");
+        Console::Throw("Failed to get the graphics queue from the device");
     }
 }

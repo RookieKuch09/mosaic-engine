@@ -105,10 +105,10 @@ else()
 endif()
 
 # Select platform
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(LINUX)
     add_compile_definitions(LINUX)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+elseif(WIN32)
     add_compile_definitions(WINDOWS)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif(APPLE)
     add_compile_definitions(MACOS)
 endif()

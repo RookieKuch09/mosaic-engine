@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
+
+#include <glm/glm.hpp>
 
 namespace Mosaic
 {
@@ -12,7 +12,6 @@ namespace Mosaic
 namespace Mosaic
 {
     void CreateSwapchain(
-        ApplicationData* applicationData,
         vk::UniqueDevice& device,
         vk::UniqueSurfaceKHR& surface,
         vk::SurfaceFormatKHR& format,
@@ -21,30 +20,27 @@ namespace Mosaic
         vk::UniqueSwapchainKHR& swapchain);
 
     void GetSwapchainData(
-        ApplicationData* applicationData,
         vk::PhysicalDevice& physicalDevice,
         vk::UniqueSurfaceKHR& surface,
         vk::SurfaceFormatKHR& format,
         vk::Extent2D& extent,
         vk::PresentModeKHR preferredMode,
         vk::PresentModeKHR& presentMode,
+        const glm::uvec2& size,
         uint32_t& imageCount);
 
     void CreateRenderPass(
-        ApplicationData* applicationData,
         vk::UniqueDevice& device,
         vk::SurfaceFormatKHR& format,
         vk::UniqueRenderPass& renderPass);
 
     void CreateSwapchainImages(
-        ApplicationData* applicationData,
         vk::UniqueDevice& device,
         vk::SurfaceFormatKHR& format,
         std::vector<vk::Image>& swapchainImages,
         std::vector<vk::UniqueImageView>& imageViews);
 
     void CreateFramebuffers(
-        ApplicationData* applicationData,
         vk::UniqueDevice& device,
         vk::SurfaceFormatKHR& format,
         vk::UniqueRenderPass& renderPass,

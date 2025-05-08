@@ -1,7 +1,6 @@
 #pragma once
 
 #include "components.hpp"
-#include "console.hpp"
 #include "events.hpp"
 #include "input.hpp"
 #include "renderer.hpp"
@@ -22,7 +21,6 @@ namespace Mosaic
 
         Window Window;
         Renderer Renderer;
-        Console Console;
 
         ComponentManager ComponentManager;
         EventManager EventManager;

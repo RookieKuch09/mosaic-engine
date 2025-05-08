@@ -2,6 +2,8 @@
 
 #include "../../include/utilities/config.hpp"
 
+#include "../../include/application/console.hpp"
+
 template <typename T>
 T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key, const T& fallback) const
 {
@@ -35,6 +37,40 @@ T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key, 
     }
 
     return fallback;
+}
+
+template <typename T, std::size_t N>
+std::array<T, N> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key) const
+{
+    auto keys = SplitKey(key);
+
+    const toml::node* node = &mData;
+
+    for (const auto& key : keys)
+    {
+        if (auto table = node->as_table())
+        {
+            node = table->get(key);
+
+            if (not node)
+            {
+                Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+            }
+        }
+        else
+        {
+            Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+        }
+    }
+
+    if (auto result = ExtractArray<T, N>(node))
+    {
+        return *result;
+    }
+
+    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+
+    throw;
 }
 
 template <typename T, std::size_t N>
@@ -114,14 +150,12 @@ T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key) 
 
             if (not node)
             {
-                break;
+                Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
             }
         }
         else
         {
-            node = nullptr;
-
-            break;
+            Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
         }
     }
 
@@ -133,7 +167,9 @@ T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key) 
         }
     }
 
-    throw std::runtime_error("TOMLFile::Get() failed to find key \"" + key + "\" in file \"" + mFilename + "\"");
+    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+
+    throw;
 }
 
 template <typename T>

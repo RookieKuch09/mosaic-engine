@@ -8,20 +8,23 @@ namespace Mosaic
     {
     public:
         template <typename... Args>
-        void LogSuccess(const std::string& message, Args&&... args);
+        static void LogSuccess(const std::string& message, Args&&... args);
 
         template <typename... Args>
-        void LogNotice(const std::string& message, Args&&... args);
+        static void LogNotice(const std::string& message, Args&&... args);
 
         template <typename... Args>
-        void LogError(const std::string& message, Args&&... args);
+        static void LogWarning(const std::string& message, Args&&... args);
 
         template <typename... Args>
-        void LogWarning(const std::string& message, Args&&... args);
+        static void LogError(const std::string& message, Args&&... args);
+
+        template <typename... Args>
+        static void Throw(const std::string& message, Args&&... args);
 
     private:
-        std::string GetCurrentTime();
+        static std::string GetCurrentTime();
     };
 }
 
-#include "../../inline/application/logging.inl"
+#include "../../inline/application/console.inl"

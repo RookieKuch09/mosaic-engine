@@ -34,6 +34,12 @@ namespace Mosaic
         std::string GetTitle() const;
         void SetTitle(const std::string& title);
 
+        std::string GetConfigPath() const;
+        void SetConfigPath(const std::string& path);
+
+        bool GetFullscreenState() const;
+        void SetFullscreenState(bool fullscreen);
+
     private:
         void Create();
         void Update();
@@ -45,12 +51,16 @@ namespace Mosaic
         void ResizeEvent(const SDL_Event& event);
         void MoveEvent(const SDL_Event& event);
 
+        void LoadConfig();
+
         glm::uvec2 mSize;
         glm::uvec2 mPosition;
 
         std::string mTitle;
+        std::string mConfigPath;
 
         bool mRunning;
+        bool mFullscreen;
 
         SDL_Window* mHandle;
 

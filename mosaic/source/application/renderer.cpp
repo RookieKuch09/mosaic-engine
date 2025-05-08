@@ -8,7 +8,7 @@
 #include <array>
 
 Mosaic::Renderer::Renderer(ApplicationData& applicationData)
-    : mApplicationData(&applicationData), mConfigPath("config/renderer.toml")
+    : mApplicationData(&applicationData), mConfigPath("")
 {
 }
 
@@ -44,8 +44,6 @@ void Mosaic::Renderer::SetConfigPath(const std::string& path)
 
 void Mosaic::Renderer::Create()
 {
-    LoadConfig();
-
     switch (mAPI)
     {
         case (RendererAPI::Vulkan):
@@ -86,8 +84,8 @@ void Mosaic::Renderer::LoadConfig()
     config.Open(mConfigPath);
 
     auto api = config.Get<std::string>("renderer.api");
-    std::array clearColour = config.Get<float, 4>("renderer.clearColour", {0.0, 0.0, 0.0, 1.0});
-    auto vsyncMode = config.Get<std::string>("renderer.vsyncMode");
+    auto clearColour = config.Get<float, 4>("renderer.clearColour", {0.0, 0.0, 0.0, 1.0});
+    auto vsyncMode = config.Get<std::string>("renderer.vsyncMode", "StrictVSync");
 
     if (api == "OpenGL")
     {
@@ -99,7 +97,7 @@ void Mosaic::Renderer::LoadConfig()
     }
     else
     {
-        mApplicationData->Console.LogError("Invalid rendering API \"{}\"", api);
+        Console::LogError("Invalid rendering API \"{}\"", api);
     }
 
     if (vsyncMode == "Disabled")
@@ -116,7 +114,7 @@ void Mosaic::Renderer::LoadConfig()
     }
     else
     {
-        mApplicationData->Console.LogError("Invalid VSync mode \"{}\"", vsyncMode);
+        Console::LogError("Invalid VSync mode \"{}\"", vsyncMode);
     }
 
     mClearColour.r = clearColour[0];

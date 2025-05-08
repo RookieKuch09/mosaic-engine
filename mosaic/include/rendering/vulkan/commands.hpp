@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
 namespace Mosaic
 {
@@ -11,7 +10,6 @@ namespace Mosaic
 namespace Mosaic
 {
     void CreateCommandResources(
-        ApplicationData* applicationData,
         vk::UniqueDevice& device,
         vk::UniqueCommandPool& commandPool,
         std::vector<vk::UniqueCommandBuffer>& commandBuffers,

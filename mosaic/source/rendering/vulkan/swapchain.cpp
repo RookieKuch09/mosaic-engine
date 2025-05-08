@@ -1,9 +1,7 @@
 #include "../../../include/rendering/vulkan/swapchain.hpp"
-#include "../../../include/application/application.hpp"
-#include <limits>
+#include "../../../include/application/console.hpp"
 
 void Mosaic::CreateSwapchain(
-    ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::UniqueSurfaceKHR& surface,
     vk::SurfaceFormatKHR& format,
@@ -29,30 +27,18 @@ void Mosaic::CreateSwapchain(
         VK_TRUE,
         nullptr};
 
-    try
-    {
-        swapchain = device->createSwapchainKHRUnique(createInfo);
-    }
-    catch (vk::SystemError const& error)
-    {
-        applicationData->Console.LogError("Failed to create Vulkan swapchain: {}", error.what());
-    }
-
-    if (not swapchain)
-    {
-        applicationData->Console.LogError("Failed to create swapchain (unknown error)");
-    }
+    swapchain = device->createSwapchainKHRUnique(createInfo);
 }
 
 void Mosaic::GetSwapchainData(
-    ApplicationData* applicationData,
     vk::PhysicalDevice& physicalDevice,
     vk::UniqueSurfaceKHR& surface,
     vk::SurfaceFormatKHR& format,
     vk::Extent2D& extent,
     vk::PresentModeKHR preferredMode,
     vk::PresentModeKHR& presentMode,
-    uint32_t& imageCount)
+    const glm::uvec2& size,
+    std::uint32_t& imageCount)
 {
     auto formats = physicalDevice.getSurfaceFormatsKHR(*surface);
     auto presentModes = physicalDevice.getSurfacePresentModesKHR(*surface);
@@ -60,7 +46,7 @@ void Mosaic::GetSwapchainData(
 
     if (formats.empty() or presentModes.empty())
     {
-        applicationData->Console.LogError("Surface does not support any formats or present modes");
+        Console::Throw("Surface does not support any formats or present modes");
     }
 
     vk::Format favFmt = vk::Format::eB8G8R8A8Unorm;
@@ -104,15 +90,14 @@ void Mosaic::GetSwapchainData(
     else
     {
         vk::Extent2D chosen{
-            std::clamp(caps.minImageExtent.width, applicationData->Window.GetSize().x, caps.maxImageExtent.width),
-            std::clamp(caps.minImageExtent.height, applicationData->Window.GetSize().y, caps.maxImageExtent.height)};
+            std::clamp(caps.minImageExtent.width, size.x, caps.maxImageExtent.width),
+            std::clamp(caps.minImageExtent.height, size.y, caps.maxImageExtent.height)};
 
         extent = chosen;
     }
 }
 
 void Mosaic::CreateRenderPass(
-    ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,
     vk::UniqueRenderPass& renderPass)
@@ -157,18 +142,10 @@ void Mosaic::CreateRenderPass(
         1,
         &dependency};
 
-    try
-    {
-        renderPass = device->createRenderPassUnique(renderPassInfo);
-    }
-    catch (const vk::SystemError& error)
-    {
-        applicationData->Console.LogError("Failed to create render pass: {}", error.what());
-    }
+    renderPass = device->createRenderPassUnique(renderPassInfo);
 }
 
 void Mosaic::CreateSwapchainImages(
-    ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,
     std::vector<vk::Image>& swapchainImages,
@@ -184,19 +161,11 @@ void Mosaic::CreateSwapchainImages(
             vk::ComponentMapping(),
             vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)};
 
-        try
-        {
-            imageViews.push_back(device->createImageViewUnique(createInfo));
-        }
-        catch (const vk::SystemError& error)
-        {
-            applicationData->Console.LogError("Failed to create framebuffer image: {}", error.what());
-        }
+        imageViews.push_back(device->createImageViewUnique(createInfo));
     }
 }
 
 void Mosaic::CreateFramebuffers(
-    ApplicationData* applicationData,
     vk::UniqueDevice& device,
     vk::SurfaceFormatKHR& format,
     vk::UniqueRenderPass& renderPass,
@@ -215,13 +184,6 @@ void Mosaic::CreateFramebuffers(
             swapchainExtent.height,
             1};
 
-        try
-        {
-            swapchainFramebuffers.push_back(device->createFramebufferUnique(framebufferCreateInfo));
-        }
-        catch (const vk::SystemError& error)
-        {
-            applicationData->Console.LogError("Failed to create framebuffer: {}", error.what());
-        }
+        swapchainFramebuffers.push_back(device->createFramebufferUnique(framebufferCreateInfo));
     }
 }

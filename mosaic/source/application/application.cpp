@@ -1,4 +1,5 @@
 #include "../../include/application/application.hpp"
+#include "../../include/application/console.hpp"
 
 Mosaic::ApplicationData::ApplicationData()
     : Window(*this), Renderer(*this), ComponentManager(*this), InputManager(*this), DebugMode(true)
@@ -30,8 +31,8 @@ std::int32_t Mosaic::Application::Run()
 {
     try
     {
-        mData.Window.mSize = {800, 600};
-        mData.Window.mTitle = "Mosaic Window";
+        mData.Window.LoadConfig();
+        mData.Renderer.LoadConfig();
 
         mData.Window.Create();
         mData.Renderer.Create();
@@ -54,8 +55,10 @@ std::int32_t Mosaic::Application::Run()
 
         return 0;
     }
-    catch (...)
+    catch (const std::exception& error)
     {
+        Console::LogError("Fatal runtime exception: {}", error.what());
+
         return 1;
     }
 }
