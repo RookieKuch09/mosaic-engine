@@ -1,7 +1,106 @@
 #include "../../../include/rendering/vulkan/instance.hpp"
-#include "../../../include/application/console.hpp"
 
-void Mosaic::CreateInstance(vk::UniqueInstance& instance, const std::vector<std::string>& layers, const std::vector<std::string>& extensions)
+#include "../../../include/application/console.hpp"
+#include "../../../include/application/window.hpp"
+
+void Mosaic::VulkanInstance::SelectWindowExtensions(const Window& window)
+{
+    auto extensions = window.GetVulkanRequiredInstanceExtensions();
+
+    for (const auto& extension : extensions)
+    {
+        mExtensions.push_back(extension);
+    }
+}
+
+void Mosaic::VulkanInstance::SelectExtensions(const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist)
+{
+    std::vector<vk::ExtensionProperties> availableExtensions;
+
+    auto result = vk::enumerateInstanceExtensionProperties();
+
+    if (result.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error querying vk::Instance supported extensions: {}", vk::to_string(result.result));
+    }
+    else
+    {
+        availableExtensions = std::move(result.value);
+    }
+
+    std::unordered_set<std::string> available;
+
+    for (const auto& ext : availableExtensions)
+    {
+        available.insert(ext.extensionName);
+    }
+
+    for (const auto& available : availableExtensions)
+    {
+        std::string name = available.extensionName;
+
+        bool whitelisted = whitelist.contains(name) or whitelist.empty();
+        bool blacklisted = blacklist.contains(name);
+
+        if (whitelisted and not blacklisted)
+        {
+            mExtensions.push_back(name);
+        }
+        else if (whitelisted and blacklisted)
+        {
+            Console::LogWarning("vk::Instance extension both whitelisted and blacklisted: {}. Ignoring extension", name);
+        }
+        else if (not whitelisted)
+        {
+            Console::LogWarning("vk::Instance extension not allowed by whitelist: {}. Ignoring extension", name);
+        }
+    }
+
+    for (const auto& name : whitelist)
+    {
+        if (not available.contains(name))
+        {
+            Console::LogWarning("Whitelisted vk::Instance extension not supported by system: {}", name);
+        }
+    }
+}
+
+void Mosaic::VulkanInstance::SelectLayers(const std::unordered_set<std::string>& selected)
+{
+    std::vector<vk::LayerProperties> availableLayers;
+
+    auto result = vk::enumerateInstanceLayerProperties();
+
+    if (result.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error querying vk::Instance supported layers: {}", vk::to_string(result.result));
+    }
+    else
+    {
+        availableLayers = std::move(result.value);
+    }
+
+    for (const auto& request : selected)
+    {
+        auto match = [&](const vk::LayerProperties& layer)
+        {
+            return request == layer.layerName;
+        };
+
+        auto found = std::find_if(availableLayers.begin(), availableLayers.end(), match);
+
+        if (found != availableLayers.end())
+        {
+            mLayers.push_back(request);
+        }
+        else
+        {
+            Console::LogWarning("vk::Instance layer is not available: {}", request);
+        }
+    }
+}
+
+void Mosaic::VulkanInstance::Create()
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -23,69 +122,30 @@ void Mosaic::CreateInstance(vk::UniqueInstance& instance, const std::vector<std:
         VK_API_VERSION_1_4,
     };
 
-    auto clayers = getVectorCStrings(layers);
-    auto cextensions = getVectorCStrings(extensions);
+    auto layers = getVectorCStrings(mLayers);
+    auto extensions = getVectorCStrings(mExtensions);
 
     vk::InstanceCreateInfo instanceInfo = {
         {},
         &appInfo,
-        static_cast<std::uint32_t>(clayers.size()),
-        clayers.data(),
-        static_cast<std::uint32_t>(cextensions.size()),
-        cextensions.data()};
+        static_cast<std::uint32_t>(layers.size()),
+        layers.data(),
+        static_cast<std::uint32_t>(extensions.size()),
+        extensions.data()};
 
-    instance = vk::createInstanceUnique(instanceInfo);
+    auto result = vk::createInstanceUnique(instanceInfo);
 
-    if (not instance)
+    if (result.result != vk::Result::eSuccess)
     {
-        Console::Throw("Failed to create Vulkan instance, unknown error");
+        Console::Throw("Error creating vk::Instance: {}", vk::to_string(result.result));
+    }
+    else
+    {
+        mInstance = std::move(result.value);
     }
 }
 
-void Mosaic::GetLayers(std::vector<std::string>& layers, const std::vector<std::string>& requested)
+vk::Instance& Mosaic::VulkanInstance::Get()
 {
-    std::vector<vk::LayerProperties> availableLayers = vk::enumerateInstanceLayerProperties();
-
-    for (const auto& request : requested)
-    {
-        auto match = [&](const vk::LayerProperties& lp)
-        {
-            return request == lp.layerName;
-        };
-
-        auto found = std::find_if(availableLayers.begin(), availableLayers.end(), match);
-
-        if (found != availableLayers.end())
-        {
-            layers.push_back(request);
-        }
-        else
-        {
-            Console::LogWarning("Requested Vulkan layer is not available: {}", request);
-        }
-    }
-}
-
-void Mosaic::GetInstanceExtensions(std::vector<std::string>& extensions, const std::vector<std::string>& requested)
-{
-    std::vector<vk::ExtensionProperties> availableExtensions = vk::enumerateInstanceExtensionProperties();
-
-    for (const auto& request : requested)
-    {
-        auto match = [&](const vk::ExtensionProperties& ep)
-        {
-            return request == ep.extensionName;
-        };
-
-        auto found = std::find_if(availableExtensions.begin(), availableExtensions.end(), match);
-
-        if (found != availableExtensions.end())
-        {
-            extensions.push_back(request);
-        }
-        else
-        {
-            Console::LogWarning("Requested Vulkan base extension is not available: {}", request);
-        }
-    }
+    return *mInstance;
 }

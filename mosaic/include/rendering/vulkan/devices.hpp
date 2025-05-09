@@ -2,25 +2,36 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace Mosaic
-{
-    struct ApplicationData;
-}
+#include <unordered_set>
 
 namespace Mosaic
 {
-    void SelectPhysicalDevice(
-        vk::UniqueInstance& instance,
-        vk::PhysicalDevice& physicalDevice);
+    class VulkanInstance;
+    class VulkanQueues;
 
-    void GetPhysicalDeviceExtensions(
-        vk::PhysicalDevice& physicalDevice,
-        std::vector<std::string>& extensions);
+    class VulkanPhysicalDevice
+    {
+    public:
+        void Select(VulkanInstance& instance);
 
-    void CreateDevice(
-        vk::Queue& graphicsQueue,
-        vk::UniqueDevice& device,
-        vk::PhysicalDevice& physicalDevice,
-        std::uint32_t& graphicsQueueFamilyIndex,
-        const std::vector<std::string>& extensions);
+        vk::PhysicalDevice& Get();
+
+    private:
+        vk::PhysicalDevice mPhysicalDevice;
+    };
+
+    class VulkanDevice
+    {
+    public:
+        void GetExtensions(VulkanPhysicalDevice& physicalDevice, const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist);
+
+        void Create(VulkanQueues& queues, VulkanPhysicalDevice& physicalDevice);
+
+        vk::Device& Get();
+
+    private:
+        vk::UniqueDevice mDevice;
+
+        std::vector<std::string> mExtensions;
+    };
 }

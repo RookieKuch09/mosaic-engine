@@ -4,6 +4,13 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include <unordered_set>
+
+namespace vk
+{
+    struct SurfaceKHR;
+    struct Instance;
+}
 
 namespace Mosaic
 {
@@ -53,6 +60,10 @@ namespace Mosaic
 
         void LoadConfig();
 
+        void InitialiseVulkan();
+        std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
+        void GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const;
+
         glm::uvec2 mSize;
         glm::uvec2 mPosition;
 
@@ -69,6 +80,8 @@ namespace Mosaic
 
         friend class Application;
         friend class VulkanRenderer;
+        friend class VulkanSurface;
+        friend class VulkanInstance;
         friend class OpenGLRenderer;
     };
 }

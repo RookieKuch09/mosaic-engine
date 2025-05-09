@@ -50,4 +50,13 @@ namespace Mosaic
         vk::Extent2D& swapchainExtent,
         std::vector<vk::UniqueFramebuffer>& swapchainFramebuffers,
         std::vector<vk::UniqueImageView>& swapchainImageViews);
+
+    class VulkanSwapchain
+    {
+    private:
+        void Create();
+        void Delete();
+
+        friend class VulkanRenderer;
+    };
 }

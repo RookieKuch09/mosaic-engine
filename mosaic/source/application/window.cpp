@@ -2,7 +2,9 @@
 
 #include "../../include/utilities/config.hpp"
 
-#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_vulkan.h>
+
+#include <vulkan/vulkan.hpp>
 
 Mosaic::Window::Window(ApplicationData& applicationData)
     : mSize(0, 0), mPosition(0, 0), mTitle(""), mConfigPath(""), mRunning(false), mFullscreen(false), mApplicationData(&applicationData)
@@ -181,4 +183,36 @@ void Mosaic::Window::LoadConfig()
 
     mSize.x = size[0];
     mSize.y = size[1];
+}
+
+void Mosaic::Window::InitialiseVulkan()
+{
+    if (not SDL_Vulkan_LoadLibrary(nullptr))
+    {
+        Console::Throw("Vulkan initialisation failed");
+    }
+}
+
+std::unordered_set<std::string> Mosaic::Window::GetVulkanRequiredInstanceExtensions() const
+{
+    std::uint32_t count = 0;
+
+    const char* const* raw = SDL_Vulkan_GetInstanceExtensions(&count);
+
+    std::unordered_set<std::string> extensions;
+
+    for (std::uint32_t index = 0; index < count; index++)
+    {
+        extensions.insert(raw[index]);
+    }
+
+    return extensions;
+}
+
+void Mosaic::Window::GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const
+{
+    if (not SDL_Vulkan_CreateSurface(mHandle, instance, nullptr, reinterpret_cast<VkSurfaceKHR*>(&surface)))
+    {
+        Console::Throw("Failed to create vk::UniqueSurfaceKHR");
+    }
 }

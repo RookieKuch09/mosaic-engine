@@ -1,5 +1,6 @@
 #include "../../../include/rendering/vulkan/commands.hpp"
 
+/*
 void Mosaic::CreateCommandResources(
     vk::UniqueDevice& device,
     vk::UniqueCommandPool& commandPool,
@@ -20,3 +21,4 @@ void Mosaic::CreateCommandResources(
 
     commandBuffers = device->allocateCommandBuffersUnique(allocateInfo);
 }
+*/

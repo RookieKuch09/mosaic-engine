@@ -3,6 +3,8 @@
 #include "../../../include/application/console.hpp"
 #include "../../../include/application/renderer.hpp"
 
+/*
+
 void Mosaic::CreateSwapchain(
     vk::UniqueDevice& device,
     vk::UniqueSurfaceKHR& surface,
@@ -216,3 +218,5 @@ void Mosaic::CreateFramebuffers(
         swapchainFramebuffers.push_back(device->createFramebufferUnique(framebufferCreateInfo));
     }
 }
+
+*/

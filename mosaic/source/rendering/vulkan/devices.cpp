@@ -1,57 +1,105 @@
 #include "../../../include/rendering/vulkan/devices.hpp"
+#include "../../../include/rendering/vulkan/instance.hpp"
+#include "../../../include/rendering/vulkan/queues.hpp"
+
 #include "../../../include/application/console.hpp"
 
-void Mosaic::SelectPhysicalDevice(
-    vk::UniqueInstance& instance,
-    vk::PhysicalDevice& physicalDevice)
+void Mosaic::VulkanPhysicalDevice::Select(VulkanInstance& instance)
 {
-    std::vector<vk::PhysicalDevice> devices;
+    auto result = instance.Get().enumeratePhysicalDevices();
 
-    devices = instance->enumeratePhysicalDevices();
+    std::vector<vk::PhysicalDevice> physicalDevices;
 
-    if (devices.empty())
+    if (result.result != vk::Result::eSuccess)
     {
-        Console::Throw("No suitable GPU found by Vulkan");
+        Console::Throw("Error enumerating physical devices: {}", vk::to_string(result.result));
+    }
+    else
+    {
+        physicalDevices = std::move(result.value);
     }
 
-    for (const auto& device : devices)
+    if (physicalDevices.empty())
     {
-        vk::PhysicalDeviceProperties props = device.getProperties();
+        Console::Throw("No Vulkan-compatible GPU located");
+    }
 
-        if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu or props.deviceType == vk::PhysicalDeviceType::eIntegratedGpu or props.deviceType == vk::PhysicalDeviceType::eVirtualGpu)
+    for (const auto& device : physicalDevices)
+    {
+        vk::PhysicalDeviceProperties properties = device.getProperties();
+
+        bool discrete = properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
+        bool integrated = properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
+
+        if (discrete or integrated)
         {
-            physicalDevice = device;
+            mPhysicalDevice = device;
 
             break;
         }
     }
 
-    if (not physicalDevice)
+    if (not mPhysicalDevice)
     {
-        Console::Throw("No suitable GPU found");
+        Console::Throw("No available GPUs match requriements");
     }
 }
 
-void Mosaic::GetPhysicalDeviceExtensions(
-    vk::PhysicalDevice& physicalDevice,
-    std::vector<std::string>& extensions)
+vk::PhysicalDevice& Mosaic::VulkanPhysicalDevice::Get()
 {
-    std::vector<vk::ExtensionProperties> extensionProperties = physicalDevice.enumerateDeviceExtensionProperties();
+    return mPhysicalDevice;
+}
+
+void Mosaic::VulkanDevice::GetExtensions(VulkanPhysicalDevice& physicalDevice, const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist)
+{
+    std::vector<vk::ExtensionProperties> extensionProperties;
+
+    auto result = physicalDevice.Get().enumerateDeviceExtensionProperties();
+
+    if (result.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error retrieving vk::PhysicalDevice extensions: {}", vk::to_string(result.result));
+    }
+
+    extensionProperties = std::move(result.value);
+
+    std::unordered_set<std::string> supportedExtensions;
 
     for (const auto& extension : extensionProperties)
     {
-        std::string name = extension.extensionName;
+        supportedExtensions.insert(extension.extensionName);
+    }
 
-        extensions.push_back(name);
+    mExtensions.clear();
+
+    for (const auto& extension : supportedExtensions)
+    {
+        if (not blacklist.contains(extension))
+        {
+            mExtensions.push_back(extension);
+        }
+    }
+
+    for (const auto& extension : whitelist)
+    {
+        if (blacklist.contains(extension))
+        {
+            Console::Throw("Whitelisted extension '{}' is also blacklisted — configuration error", extension);
+        }
+
+        if (not supportedExtensions.contains(extension))
+        {
+            Console::Throw("Requested whitelisted extension '{}' is not supported by the physical device", extension);
+        }
+
+        if (std::find(mExtensions.begin(), mExtensions.end(), extension) == mExtensions.end())
+        {
+            mExtensions.push_back(extension);
+        }
     }
 }
 
-void Mosaic::CreateDevice(
-    vk::Queue& graphicsQueue,
-    vk::UniqueDevice& device,
-    vk::PhysicalDevice& physicalDevice,
-    std::uint32_t& graphicsQueueFamilyIndex,
-    const std::vector<std::string>& extensions)
+void Mosaic::VulkanDevice::Create(VulkanQueues& queues, VulkanPhysicalDevice& physicalDevice)
 {
     auto getVectorCStrings = [](const std::vector<std::string>& vector)
     {
@@ -65,50 +113,16 @@ void Mosaic::CreateDevice(
         return result;
     };
 
-    auto queueFamilies = physicalDevice.getQueueFamilyProperties();
-
-    if (queueFamilies.empty())
-    {
-        Console::Throw("No queue families found for the physical device");
-    }
-
-    std::optional<std::uint32_t> graphicsQueueIndex;
-
-    for (std::int32_t index = 0; index < queueFamilies.size(); index++)
-    {
-        if (queueFamilies[index].queueFlags bitand vk::QueueFlagBits::eGraphics)
-        {
-            graphicsQueueIndex = index;
-
-            break;
-        }
-    }
-
-    if (not graphicsQueueIndex)
-    {
-        Console::Throw("Failed to find graphics queue");
-    }
-
-    graphicsQueueFamilyIndex = graphicsQueueIndex.value();
-
-    float queuePriority = 1.0;
-
-    vk::DeviceQueueCreateInfo queueCreateInfo = {
-        {},
-        *graphicsQueueIndex,
-        1,
-        &queuePriority};
-
-    auto rawExtensions = getVectorCStrings(extensions);
+    auto extensions = getVectorCStrings(mExtensions);
 
     vk::DeviceCreateInfo deviceCreateInfo = {
         {},
-        1,
-        &queueCreateInfo,
+        static_cast<std::uint32_t>(queues.GetQueueCreateInfo().size()),
+        queues.GetQueueCreateInfo().data(),
         0,
         nullptr,
-        static_cast<std::uint32_t>(rawExtensions.size()),
-        rawExtensions.data(),
+        static_cast<std::uint32_t>(extensions.size()),
+        extensions.data(),
     };
 
     vk::PhysicalDeviceFeatures2 enabledFeatures{};
@@ -120,16 +134,23 @@ void Mosaic::CreateDevice(
     enabled11.pNext = &enabled12;
     enabled12.pNext = &enabled13;
 
-    physicalDevice.getFeatures2(&enabledFeatures);
+    physicalDevice.Get().getFeatures2(&enabledFeatures);
 
     deviceCreateInfo.pNext = &enabledFeatures;
 
-    device = physicalDevice.createDeviceUnique(deviceCreateInfo);
+    auto result = physicalDevice.Get().createDeviceUnique(deviceCreateInfo);
 
-    graphicsQueue = device->getQueue(*graphicsQueueIndex, 0);
-
-    if (not graphicsQueue)
+    if (result.result != vk::Result::eSuccess)
     {
-        Console::Throw("Failed to get the graphics queue from the device");
+        Console::Throw("Error creating vk::Device: {}", vk::to_string(result.result));
     }
+    else
+    {
+        mDevice = std::move(result.value);
+    }
+}
+
+vk::Device& Mosaic::VulkanDevice::Get()
+{
+    return *mDevice;
 }

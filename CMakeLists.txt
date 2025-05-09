@@ -29,6 +29,8 @@ else()
     target_link_libraries(Mosaic PRIVATE Vulkan::Vulkan)
 endif()
 
+add_compile_definitions(VULKAN_HPP_NO_EXCEPTIONS)
+
 # Find all platform-independent required packages
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
