@@ -26,6 +26,9 @@ namespace Mosaic
         void Submit();
         void Present();
 
+        void DestroySwapchain();
+        void RebuildSwapchain();
+
         void AwaitFrame();
         void AdvanceFrame();
 
@@ -35,6 +38,8 @@ namespace Mosaic
         std::uint32_t mImageIndex;
         std::uint32_t mFrameIndex;
         std::uint32_t mGraphicsQueueFamilyIndex;
+
+        bool mRebuildSwapchain;
 
         ApplicationData* mApplicationData;
 

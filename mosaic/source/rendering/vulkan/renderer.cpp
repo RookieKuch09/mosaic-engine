@@ -12,7 +12,7 @@
 #include <SDL3/SDL_vulkan.h>
 
 Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
-    : mApplicationData(applicationData)
+    : mApplicationData(applicationData), mRebuildSwapchain(false)
 {
 }
 
@@ -28,6 +28,14 @@ void Mosaic::VulkanRenderer::PreUpdate()
     AdvanceFrame();
     AwaitFrame();
 
+    if (mRebuildSwapchain)
+    {
+        DestroySwapchain();
+        RebuildSwapchain();
+
+        mRebuildSwapchain = false;
+    }
+
     const auto imageIndex = AcquireFrame();
     if (not imageIndex.has_value())
     {
@@ -41,8 +49,11 @@ void Mosaic::VulkanRenderer::PreUpdate()
 
 void Mosaic::VulkanRenderer::PostUpdate()
 {
-    Submit();
-    Present();
+    if (not mRebuildSwapchain)
+    {
+        Submit();
+        Present();
+    }
 }
 
 void Mosaic::VulkanRenderer::CreateResources()
@@ -159,6 +170,97 @@ void Mosaic::VulkanRenderer::CreateResources()
     }
 }
 
+void Mosaic::VulkanRenderer::DestroySwapchain()
+{
+    mDevice->waitIdle();
+
+    mSwapchain.release();
+    mCommandPool.release();
+    mRenderPass.release();
+
+    mSwapchainImages.clear();
+    mSwapchainImageViews.clear();
+    mSwapchainFramebuffers.clear();
+    mImageAvailableSemaphores.clear();
+    mRenderFinishedSemaphores.clear();
+    mInFlightFences.clear();
+}
+
+void Mosaic::VulkanRenderer::RebuildSwapchain()
+{
+    mSwapchainImages = mDevice->getSwapchainImagesKHR(*mSwapchain);
+
+    std::uint32_t swapchainSize = mSwapchainImages.size();
+
+    mSwapchainImageViews.reserve(swapchainSize);
+    mSwapchainFramebuffers.reserve(swapchainSize);
+    mImageAvailableSemaphores.resize(swapchainSize);
+    mRenderFinishedSemaphores.resize(swapchainSize);
+    mInFlightFences.resize(swapchainSize);
+
+    vk::SemaphoreCreateInfo semaphoreInfo = {};
+    vk::FenceCreateInfo fenceInfo = {vk::FenceCreateFlagBits::eSignaled};
+
+    for (std::uint32_t index = 0; index < swapchainSize; index++)
+    {
+        mImageAvailableSemaphores[index] = mDevice->createSemaphoreUnique(semaphoreInfo);
+        mRenderFinishedSemaphores[index] = mDevice->createSemaphoreUnique(semaphoreInfo);
+        mInFlightFences[index] = mDevice->createFenceUnique(fenceInfo);
+    }
+
+    GetSwapchainData(
+        mPhysicalDevice,
+        mSurface,
+        mSurfaceFormat,
+        mSwapchainExtent,
+        mVSync,
+        mPresentMode,
+        mApplicationData->Window.GetSize(),
+        mImageCount);
+
+    CreateSwapchain(
+        mDevice,
+        mSurface,
+        mSurfaceFormat,
+        mSwapchainExtent,
+        mImageCount,
+        mPresentMode,
+        mSwapchain);
+
+    mSwapchainImages = mDevice->getSwapchainImagesKHR(*mSwapchain);
+
+    mSwapchainImageViews.reserve(mSwapchainImages.size());
+    mSwapchainFramebuffers.reserve(mSwapchainImages.size());
+
+    CreateRenderPass(
+        mDevice,
+        mSurfaceFormat,
+        mRenderPass);
+
+    CreateSwapchainImages(
+        mDevice,
+        mSurfaceFormat,
+        mSwapchainImages,
+        mSwapchainImageViews);
+
+    CreateFramebuffers(
+        mDevice,
+        mSurfaceFormat,
+        mRenderPass,
+        mSwapchainExtent,
+        mSwapchainFramebuffers,
+        mSwapchainImageViews);
+
+    CreateCommandResources(
+        mDevice,
+        mCommandPool,
+        mCommandBuffers,
+        mSwapchainFramebuffers.size());
+
+    mFrameIndex = 0;
+    mImageIndex = 0;
+}
+
 void Mosaic::VulkanRenderer::Record()
 {
     if (not mRenderPass)
@@ -234,11 +336,18 @@ void Mosaic::VulkanRenderer::Present()
         &mImageIndex,
         nullptr);
 
-    vk::Result result = mGraphicsQueue.presentKHR(presentInfo);
-
-    if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
+    try
     {
-        // TODO: manage swapchain reconstruction
+        mGraphicsQueue.presentKHR(presentInfo);
+    }
+    catch (const vk::SystemError& error)
+    {
+        vk::Result result = static_cast<vk::Result>(error.code().value());
+
+        if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
+        {
+            mRebuildSwapchain = true;
+        }
     }
 }
 
@@ -267,25 +376,31 @@ void Mosaic::VulkanRenderer::AwaitFrame()
 
 std::optional<std::uint32_t> Mosaic::VulkanRenderer::AcquireFrame()
 {
-    uint32_t mImageIndex;
-
-    vk::Result result = mDevice->acquireNextImageKHR(
-        *mSwapchain,
-        std::numeric_limits<std::uint64_t>::max(),
-        *mImageAvailableSemaphores[mFrameIndex],
-        nullptr,
-        &mImageIndex);
-
-    if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
+    try
     {
-        return std::nullopt;
+        mDevice->acquireNextImageKHR(
+            *mSwapchain,
+            std::numeric_limits<std::uint64_t>::max(),
+            *mImageAvailableSemaphores[mFrameIndex],
+            nullptr,
+            &mImageIndex);
     }
-
-    if (result != vk::Result::eSuccess)
+    catch (const vk::SystemError& error)
     {
-        Console::Throw("Failed to acquire swapchain image: {}", vk::to_string(result));
+        vk::Result result = static_cast<vk::Result>(error.code().value());
 
-        return std::nullopt;
+        if (result == vk::Result::eErrorOutOfDateKHR or result == vk::Result::eSuboptimalKHR)
+        {
+            mRebuildSwapchain = true;
+
+            return std::nullopt;
+        }
+        else if (result != vk::Result::eSuccess)
+        {
+            Console::Throw("Failed to acquire swapchain image: {}", vk::to_string(result));
+
+            return std::nullopt;
+        }
     }
 
     return mImageIndex;
