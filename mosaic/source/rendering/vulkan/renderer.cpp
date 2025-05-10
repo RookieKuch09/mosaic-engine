@@ -27,9 +27,9 @@ void Mosaic::VulkanRenderer::Create()
     mDevice.GetExtensions(mPhysicalDevice, {}, {"VK_EXT_buffer_device_address"});
     mDevice.Create(mQueues, mPhysicalDevice);
 
-    mQueues.Load(mDevice);
-
     mRenderPass.Create(mDevice, mSurface);
+
+    mQueues.Load(mDevice);
 
     CreateSwapchain();
 }
@@ -94,7 +94,7 @@ void Mosaic::VulkanRenderer::Update()
     }
 
     mCommandSystem.BeginFrame(imageIndex);
-    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, mClearColour);
+    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.w});
     mCommandSystem.EndFrame(imageIndex);
 
     VulkanFrameSubmitDescriptor frameSubmitDescriptor = {

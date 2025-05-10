@@ -40,6 +40,8 @@ namespace Mosaic
         std::optional<std::uint32_t> mTransferFamily;
         std::optional<std::uint32_t> mPresentFamily;
 
+        float mQueuePriority;
+
         std::vector<vk::DeviceQueueCreateInfo> mQueueCreateInfos;
     };
 }

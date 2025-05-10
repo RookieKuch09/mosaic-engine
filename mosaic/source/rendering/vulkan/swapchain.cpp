@@ -20,14 +20,7 @@ void Mosaic::VulkanFramebuffer::Create(VulkanDevice& device, VulkanSurface& surf
         vk::ComponentMapping(),
         vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)};
 
-    auto imageViewResult = device.Get().createImageViewUnique(createInfo);
-
-    if (imageViewResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error creating vk::ImageView for vk::Framebuffer: {}", vk::to_string(imageViewResult.result));
-    }
-
-    mImageView = std::move(imageViewResult.value);
+    mImageView = device.Get().createImageViewUnique(createInfo);
 
     vk::FramebufferCreateInfo framebufferCreateInfo = {
         {},
@@ -38,14 +31,7 @@ void Mosaic::VulkanFramebuffer::Create(VulkanDevice& device, VulkanSurface& surf
         swapchain.GetExtent().height,
         1};
 
-    auto framebufferResult = device.Get().createFramebufferUnique(framebufferCreateInfo);
-
-    if (framebufferResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error creating vk::Framebuffer: {}", vk::to_string(framebufferResult.result));
-    }
-
-    mFramebuffer = std::move(framebufferResult.value);
+    mFramebuffer = device.Get().createFramebufferUnique(framebufferCreateInfo);
 }
 
 void Mosaic::VulkanFramebuffer::Reset()
@@ -114,14 +100,7 @@ void Mosaic::VulkanRenderPass::Create(VulkanDevice& device, VulkanSurface& surfa
         1,
         &dependency};
 
-    auto result = device.Get().createRenderPassUnique(renderPassInfo);
-
-    if (result.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error creating vk::RenderPass: {}", vk::to_string(result.result));
-    }
-
-    mRenderPass = std::move(result.value);
+    mRenderPass = device.Get().createRenderPassUnique(renderPassInfo);
 }
 
 vk::RenderPass& Mosaic::VulkanRenderPass::GetRenderPass()
@@ -131,21 +110,8 @@ vk::RenderPass& Mosaic::VulkanRenderPass::GetRenderPass()
 
 void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
 {
-    auto presentResult = physicalDevice.Get().getSurfacePresentModesKHR(surface.GetHandle());
-    auto capabilitiesResult = physicalDevice.Get().getSurfaceCapabilitiesKHR(surface.GetHandle());
-
-    if (presentResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error querying vk::Surface supported presentation modes: {}", vk::to_string(presentResult.result));
-    }
-
-    if (capabilitiesResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error querying vk::Surface capabilities: {}", vk::to_string(presentResult.result));
-    }
-
-    auto& presentModes = presentResult.value;
-    auto& capabilities = capabilitiesResult.value;
+    auto presentModes = physicalDevice.Get().getSurfacePresentModesKHR(surface.GetHandle());
+    auto capabilities = physicalDevice.Get().getSurfaceCapabilitiesKHR(surface.GetHandle());
 
     if (presentModes.empty())
     {
@@ -238,23 +204,9 @@ void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, Vulka
         VK_TRUE,
         mSwapchain ? mSwapchain.get() : nullptr};
 
-    auto result = device.Get().createSwapchainKHRUnique(createInfo);
+    mSwapchain = device.Get().createSwapchainKHRUnique(createInfo);
 
-    if (result.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error creating vk::Swapchain: {}", vk::to_string(result.result));
-    }
-
-    mSwapchain = std::move(result.value);
-
-    auto imagesResult = device.Get().getSwapchainImagesKHR(mSwapchain.get());
-
-    if (imagesResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error getting vk::Swapchain images: {}", vk::to_string(imagesResult.result));
-    }
-
-    mSwapchainImages = std::move(imagesResult.value);
+    mSwapchainImages = device.Get().getSwapchainImagesKHR(mSwapchain.get());
 }
 
 void Mosaic::VulkanSwapchain::CreateSyncObjects(VulkanDevice& device)
@@ -270,28 +222,9 @@ void Mosaic::VulkanSwapchain::CreateSyncObjects(VulkanDevice& device)
     {
         VulkanFrameSyncObjects frameSync{};
 
-        auto availableResult = device.Get().createSemaphoreUnique(semaphoreInfo);
-        auto finishedResult = device.Get().createSemaphoreUnique(semaphoreInfo);
-        auto flightResult = device.Get().createFenceUnique(fenceInfo);
-
-        if (availableResult.result != vk::Result::eSuccess)
-        {
-            Console::Throw("Error creating ImageAvailable vk::Semaphore: {}", vk::to_string(availableResult.result));
-        }
-
-        if (finishedResult.result != vk::Result::eSuccess)
-        {
-            Console::Throw("Error creating RenderFinished vk::Semaphore: {}", vk::to_string(finishedResult.result));
-        }
-
-        if (flightResult.result != vk::Result::eSuccess)
-        {
-            Console::Throw("Error creating InFlight vk::Fence: {}", vk::to_string(flightResult.result));
-        }
-
-        frameSync.ImageAvailable = std::move(availableResult.value);
-        frameSync.RenderFinished = std::move(finishedResult.value);
-        frameSync.InFlight = std::move(flightResult.value);
+        frameSync.ImageAvailable = device.Get().createSemaphoreUnique(semaphoreInfo);
+        frameSync.RenderFinished = device.Get().createSemaphoreUnique(semaphoreInfo);
+        frameSync.InFlight = device.Get().createFenceUnique(fenceInfo);
 
         mSyncFrames.emplace_back(std::move(frameSync));
     }
@@ -344,23 +277,47 @@ void Mosaic::VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueue
         1, &mSwapchain.get(),
         &imageIndex};
 
-    auto result = queues.GetPresentQueue().presentKHR(presentInfo);
-
-    if (result == vk::Result::eSuboptimalKHR)
+    try
     {
-        Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+        auto result = queues.GetPresentQueue().presentKHR(presentInfo);
 
-        renderer.mRebuildSwapchainSuboptimal = true;
+        if (result == vk::Result::eSuboptimalKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainSuboptimal = true;
+        }
+        else if (result == vk::Result::eErrorOutOfDateKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainOutOfDate = true;
+        }
+        else if (result != vk::Result::eSuccess)
+        {
+            Console::Throw("Failed to present frame: {}", vk::to_string(result));
+        }
     }
-    else if (result == vk::Result::eErrorOutOfDateKHR)
+    catch (const vk::SystemError& error)
     {
-        Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+        auto result = static_cast<vk::Result>(error.code().value());
 
-        renderer.mRebuildSwapchainOutOfDate = true;
-    }
-    else if (result != vk::Result::eSuccess)
-    {
-        Console::Throw("Failed to present frame: {}", vk::to_string(result));
+        if (result == vk::Result::eSuboptimalKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainSuboptimal = true;
+        }
+        else if (result == vk::Result::eErrorOutOfDateKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainOutOfDate = true;
+        }
+        else if (result != vk::Result::eSuccess)
+        {
+            Console::Throw("Failed to present frame: {}", vk::to_string(result));
+        }
     }
 }
 

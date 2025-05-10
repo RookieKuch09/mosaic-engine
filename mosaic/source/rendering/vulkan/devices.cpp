@@ -8,18 +8,7 @@
 
 void Mosaic::VulkanPhysicalDevice::Select(VulkanInstance& instance)
 {
-    auto result = instance.Get().enumeratePhysicalDevices();
-
-    std::vector<vk::PhysicalDevice> physicalDevices;
-
-    if (result.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error enumerating physical devices: {}", vk::to_string(result.result));
-    }
-    else
-    {
-        physicalDevices = std::move(result.value);
-    }
+    auto physicalDevices = instance.Get().enumeratePhysicalDevices();
 
     if (physicalDevices.empty())
     {
@@ -54,16 +43,7 @@ vk::PhysicalDevice& Mosaic::VulkanPhysicalDevice::Get()
 
 void Mosaic::VulkanDevice::GetExtensions(VulkanPhysicalDevice& physicalDevice, const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist)
 {
-    std::vector<vk::ExtensionProperties> extensionProperties;
-
-    auto result = physicalDevice.Get().enumerateDeviceExtensionProperties();
-
-    if (result.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error retrieving vk::PhysicalDevice extensions: {}", vk::to_string(result.result));
-    }
-
-    extensionProperties = std::move(result.value);
+    auto extensionProperties = physicalDevice.Get().enumerateDeviceExtensionProperties();
 
     std::unordered_set<std::string> supportedExtensions;
 
@@ -140,16 +120,7 @@ void Mosaic::VulkanDevice::Create(VulkanQueues& queues, VulkanPhysicalDevice& ph
 
     deviceCreateInfo.pNext = &enabledFeatures;
 
-    auto result = physicalDevice.Get().createDeviceUnique(deviceCreateInfo);
-
-    if (result.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error creating vk::Device: {}", vk::to_string(result.result));
-    }
-    else
-    {
-        mDevice = std::move(result.value);
-    }
+    mDevice = physicalDevice.Get().createDeviceUnique(deviceCreateInfo);
 }
 
 vk::Device& Mosaic::VulkanDevice::Get()
@@ -168,35 +139,56 @@ void Mosaic::VulkanDevice::AwaitFences(VulkanSwapchain& swapchain)
         Console::Throw("Failed to await fences: {}", vk::to_string(result));
     }
 
-    result = mDevice->resetFences(swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].InFlight.get());
-
-    if (result != vk::Result::eSuccess)
-    {
-        Console::Throw("Failed to reset fences: {}", vk::to_string(result));
-    }
+    mDevice->resetFences(swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].InFlight.get());
 }
 
 std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain)
 {
+    std::uint32_t imageIndex = 0;
+
     auto semaphore = swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].ImageAvailable.get();
 
-    auto [result, imageIndex] = mDevice->acquireNextImageKHR(swapchain.GetSwapchain(), UINT64_MAX, semaphore, nullptr);
-
-    if (result == vk::Result::eSuboptimalKHR)
+    try
     {
-        Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+        auto result = mDevice->acquireNextImageKHR(swapchain.GetSwapchain(), UINT64_MAX, semaphore, nullptr, &imageIndex);
 
-        renderer.mRebuildSwapchainSuboptimal = true;
+        if (result == vk::Result::eSuboptimalKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainSuboptimal = true;
+        }
+        else if (result == vk::Result::eErrorOutOfDateKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainOutOfDate = true;
+        }
+        else if (result != vk::Result::eSuccess)
+        {
+            Console::Throw("Failed to acquire next image index: {}", vk::to_string(result));
+        }
     }
-    else if (result == vk::Result::eErrorOutOfDateKHR)
+    catch (const vk::SystemError& error)
     {
-        Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+        auto result = static_cast<vk::Result>(error.code().value());
 
-        renderer.mRebuildSwapchainOutOfDate = true;
-    }
-    else if (result != vk::Result::eSuccess)
-    {
-        Console::Throw("Failed to acquire next image index: {}", vk::to_string(result));
+        if (result == vk::Result::eSuboptimalKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainSuboptimal = true;
+        }
+        else if (result == vk::Result::eErrorOutOfDateKHR)
+        {
+            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+            renderer.mRebuildSwapchainOutOfDate = true;
+        }
+        else if (result != vk::Result::eSuccess)
+        {
+            Console::Throw("Failed to acquire next image index: {}", vk::to_string(result));
+        }
     }
 
     return imageIndex;
@@ -204,10 +196,5 @@ std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, 
 
 void Mosaic::VulkanDevice::WaitIdle()
 {
-    auto result = mDevice->waitIdle();
-
-    if (result != vk::Result::eSuccess)
-    {
-        Console::Throw("Failed to wait for vk::Device idle state: {}", vk::to_string(result));
-    }
+    mDevice->waitIdle();
 }

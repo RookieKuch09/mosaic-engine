@@ -7,14 +7,7 @@
 
 void Mosaic::VulkanSurface::SelectFormat(VulkanPhysicalDevice& physicalDevice, vk::Format format, vk::ColorSpaceKHR space)
 {
-    auto formatsResult = physicalDevice.Get().getSurfaceFormatsKHR(*mSurface);
-
-    if (formatsResult.result != vk::Result::eSuccess)
-    {
-        Console::Throw("Error querying vk::Surface supported formats: {}", vk::to_string(formatsResult.result));
-    }
-
-    auto& formats = formatsResult.value;
+    auto formats = physicalDevice.Get().getSurfaceFormatsKHR(*mSurface);
 
     if (formats.empty())
     {

@@ -1,6 +1,8 @@
 #include "../../include/application/application.hpp"
 #include "../../include/application/console.hpp"
 
+#include <vulkan/vulkan.hpp>
+
 Mosaic::ApplicationData::ApplicationData()
     : Window(*this), Renderer(*this), ComponentManager(*this), InputManager(*this), DebugMode(true)
 {
@@ -51,6 +53,14 @@ std::int32_t Mosaic::Application::Run()
         Data.ComponentManager.Stop();
 
         return 0;
+    }
+    catch (const vk::SystemError& error)
+    {
+        auto result = static_cast<vk::Result>(error.code().value());
+
+        Console::LogError("Fatal runtime exception: {}", vk::to_string(result));
+
+        return 1;
     }
     catch (const std::exception& error)
     {

@@ -19,6 +19,8 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
         if (not mGraphicsFamily and props.queueFlags & vk::QueueFlagBits::eGraphics)
         {
             mGraphicsFamily = index;
+
+            Console::LogNotice("q0={}", index);
         }
 
         if (not mComputeFamily and props.queueFlags & vk::QueueFlagBits::eCompute)
@@ -26,6 +28,8 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
             if (not(props.queueFlags & vk::QueueFlagBits::eGraphics))
             {
                 mComputeFamily = index;
+
+                Console::LogNotice("q1={}", index);
             }
         }
 
@@ -34,40 +38,42 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
             if (not(props.queueFlags & vk::QueueFlagBits::eGraphics) and not(props.queueFlags & vk::QueueFlagBits::eCompute))
             {
                 mTransferFamily = index;
+
+                Console::LogNotice("q2={}", index);
             }
         }
 
-        auto result = gpu.getSurfaceSupportKHR(index, surface.GetHandle());
+        bool alreadyUsed = (mGraphicsFamily and mGraphicsFamily.value() == index) or
+                           (mComputeFamily and mComputeFamily.value() == index) or
+                           (mTransferFamily and mTransferFamily.value() == index);
 
-        if (result.result != vk::Result::eSuccess)
-        {
-            Console::Throw("Error retrieving vk::Surface support: {}", vk::to_string(result.result));
-        }
+        auto support = gpu.getSurfaceSupportKHR(index, surface.GetHandle());
 
-        auto& support = result.value;
-
-        if (not mPresentFamily and support)
+        if (not alreadyUsed and not mPresentFamily and support)
         {
             mPresentFamily = index;
+
+            Console::LogNotice("q3={}", index);
         }
     }
 
     ResolveFallbacks();
 
-    std::set<std::uint32_t> uniqueFamilies{
+    std::set<std::uint32_t> uniqueFamilies = {
         mGraphicsFamily.value(),
         mComputeFamily.value(),
         mTransferFamily.value(),
-        mPresentFamily.value()};
+        mPresentFamily.value(),
+    };
 
-    float priority = 1.0f;
+    mQueuePriority = 1.0;
 
     for (std::uint32_t family : uniqueFamilies)
     {
         vk::DeviceQueueCreateInfo info{};
         info.queueFamilyIndex = family;
         info.queueCount = 1;
-        info.pQueuePriorities = &priority;
+        info.pQueuePriorities = &mQueuePriority;
 
         mQueueCreateInfos.push_back(info);
     }
@@ -83,6 +89,11 @@ void Mosaic::VulkanQueues::ResolveFallbacks()
     if (not mTransferFamily)
     {
         mTransferFamily = mComputeFamily;
+    }
+
+    if (not mPresentFamily)
+    {
+        mPresentFamily = mGraphicsFamily;
     }
 }
 

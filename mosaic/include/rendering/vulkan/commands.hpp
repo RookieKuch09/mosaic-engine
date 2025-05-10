@@ -28,7 +28,7 @@ namespace Mosaic
         void AllocateCommandBuffers(VulkanDevice& device, VulkanSwapchain& swapchain);
         void BeginFrame(std::uint32_t imageIndex);
         void EndFrame(std::uint32_t imageIndex);
-        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, std::uint32_t imageIndex, const glm::fvec4& clear);
+        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, std::uint32_t imageIndex, const std::array<float, 4>& clear);
 
         void Reset();
 
