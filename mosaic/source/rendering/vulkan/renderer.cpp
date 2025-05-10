@@ -29,6 +29,7 @@ void Mosaic::VulkanRenderer::Create()
     mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
 
     mSwapchain.Create(mApplicationData->Window, mDevice, mPhysicalDevice, mSurface, mVSync);
+    mSwapchain.CreateSyncObjects(mDevice);
 
     mRenderPass.Create(mDevice, mSurface);
 

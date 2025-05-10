@@ -185,6 +185,7 @@ void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, Vulka
     mPresentMode = (it != fallbackList.end() ? *it : vk::PresentModeKHR::eFifo);
 
     mImageCount = std::max(2u, capabilities.minImageCount);
+    mFramesInFlight = std::clamp(mImageCount - 1, 1u, 3u);
 
     if (capabilities.maxImageCount > 0)
     {
@@ -243,6 +244,46 @@ void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, Vulka
     }
 
     mSwapchainImages = std::move(imagesResult.value);
+}
+
+void Mosaic::VulkanSwapchain::CreateSyncObjects(VulkanDevice& device)
+{
+    mSyncFrames.clear();
+    mSyncFrames.reserve(mFramesInFlight);
+    mImagesInFlight.resize(mImageCount, VK_NULL_HANDLE);
+
+    vk::SemaphoreCreateInfo semaphoreInfo{};
+    vk::FenceCreateInfo fenceInfo{vk::FenceCreateFlagBits::eSignaled};
+
+    for (std::uint32_t index = 0; index < mFramesInFlight; index++)
+    {
+        VulkanFrameSyncObjects frameSync{};
+
+        auto availableResult = device.Get().createSemaphoreUnique(semaphoreInfo);
+        auto finishedResult = device.Get().createSemaphoreUnique(semaphoreInfo);
+        auto flightResult = device.Get().createFenceUnique(fenceInfo);
+
+        if (availableResult.result != vk::Result::eSuccess)
+        {
+            Console::Throw("Error creating ImageAvailable vk::Semaphore: {}", vk::to_string(availableResult.result));
+        }
+
+        if (finishedResult.result != vk::Result::eSuccess)
+        {
+            Console::Throw("Error creating RenderFinished vk::Semaphore: {}", vk::to_string(finishedResult.result));
+        }
+
+        if (flightResult.result != vk::Result::eSuccess)
+        {
+            Console::Throw("Error creating InFlight vk::Fence: {}", vk::to_string(flightResult.result));
+        }
+
+        frameSync.ImageAvailable = std::move(availableResult.value);
+        frameSync.RenderFinished = std::move(finishedResult.value);
+        frameSync.InFlight = std::move(flightResult.value);
+
+        mSyncFrames.emplace_back(std::move(frameSync));
+    }
 }
 
 vk::SwapchainKHR& Mosaic::VulkanSwapchain::GetSwapchain()

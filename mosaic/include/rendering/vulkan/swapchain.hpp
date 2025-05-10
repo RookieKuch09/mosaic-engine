@@ -57,7 +57,7 @@ namespace Mosaic
     {
     public:
         void Create(Window& window, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
-        void CreateSyncObjects();
+        void CreateSyncObjects(VulkanDevice& device);
 
         vk::SwapchainKHR& GetSwapchain();
         vk::Extent2D& GetExtent();
@@ -71,6 +71,7 @@ namespace Mosaic
         vk::PresentModeKHR mPresentMode;
 
         std::uint32_t mImageCount;
+        std::uint32_t mFramesInFlight;
 
         std::vector<vk::Image> mSwapchainImages;
         std::vector<VulkanFrameSyncObjects> mSyncFrames;
