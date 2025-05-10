@@ -18,6 +18,7 @@ namespace Mosaic
 
     private:
         void Create() override;
+        void CreateSwapchain();
 
         void Update() override;
 
@@ -35,5 +36,11 @@ namespace Mosaic
         std::vector<VulkanFramebuffer> mFramebuffers;
 
         ApplicationData* mApplicationData;
+
+        bool mRebuildSwapchainSuboptimal;
+        bool mRebuildSwapchainOutOfDate;
+
+        friend class VulkanSwapchain;
+        friend class VulkanDevice;
     };
 }

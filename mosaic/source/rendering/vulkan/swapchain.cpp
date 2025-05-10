@@ -1,5 +1,7 @@
 #include "../../../include/rendering/vulkan/swapchain.hpp"
 #include "../../../include/rendering/vulkan/devices.hpp"
+#include "../../../include/rendering/vulkan/queues.hpp"
+#include "../../../include/rendering/vulkan/renderer.hpp"
 #include "../../../include/rendering/vulkan/surface.hpp"
 
 #include "../../../include/application/console.hpp"
@@ -44,6 +46,15 @@ void Mosaic::VulkanFramebuffer::Create(VulkanDevice& device, VulkanSurface& surf
     }
 
     mFramebuffer = std::move(framebufferResult.value);
+}
+
+void Mosaic::VulkanFramebuffer::Reset()
+{
+    if (mFramebuffer)
+    {
+        mFramebuffer.reset();
+        mImageView.reset();
+    }
 }
 
 vk::Framebuffer& Mosaic::VulkanFramebuffer::GetFramebuffer()
@@ -309,4 +320,60 @@ std::uint32_t Mosaic::VulkanSwapchain::GetImageCount()
 std::uint32_t Mosaic::VulkanSwapchain::GetInFlightFrames()
 {
     return mFramesInFlight;
+}
+
+std::uint32_t Mosaic::VulkanSwapchain::GetCurrentFrame()
+{
+    return mCurrentFrame;
+}
+
+void Mosaic::VulkanSwapchain::IncrementFrame()
+{
+    mCurrentFrame = (mCurrentFrame + 1) % mFramesInFlight;
+}
+
+std::vector<Mosaic::VulkanFrameSyncObjects>& Mosaic::VulkanSwapchain::GetSyncFrames()
+{
+    return mSyncFrames;
+}
+
+void Mosaic::VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueues& queues, std::uint32_t imageIndex)
+{
+    vk::PresentInfoKHR presentInfo = {
+        1, &mSyncFrames[GetCurrentFrame()].RenderFinished.get(),
+        1, &mSwapchain.get(),
+        &imageIndex};
+
+    auto result = queues.GetPresentQueue().presentKHR(presentInfo);
+
+    if (result == vk::Result::eSuboptimalKHR)
+    {
+        Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+        renderer.mRebuildSwapchainSuboptimal = true;
+    }
+    else if (result == vk::Result::eErrorOutOfDateKHR)
+    {
+        Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
+
+        renderer.mRebuildSwapchainOutOfDate = true;
+    }
+    else if (result != vk::Result::eSuccess)
+    {
+        Console::Throw("Failed to present frame: {}", vk::to_string(result));
+    }
+}
+
+void Mosaic::VulkanSwapchain::Reset()
+{
+    if (mSwapchain)
+    {
+        mSwapchain.reset();
+
+        mSwapchainImages.clear();
+        mSyncFrames.clear();
+        mImagesInFlight.clear();
+
+        mCurrentFrame = 0;
+    }
 }

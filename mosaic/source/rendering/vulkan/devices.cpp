@@ -1,6 +1,8 @@
 #include "../../../include/rendering/vulkan/devices.hpp"
 #include "../../../include/rendering/vulkan/instance.hpp"
 #include "../../../include/rendering/vulkan/queues.hpp"
+#include "../../../include/rendering/vulkan/renderer.hpp"
+#include "../../../include/rendering/vulkan/swapchain.hpp"
 
 #include "../../../include/application/console.hpp"
 
@@ -153,4 +155,59 @@ void Mosaic::VulkanDevice::Create(VulkanQueues& queues, VulkanPhysicalDevice& ph
 vk::Device& Mosaic::VulkanDevice::Get()
 {
     return *mDevice;
+}
+
+void Mosaic::VulkanDevice::AwaitFences(VulkanSwapchain& swapchain)
+{
+    vk::Result result;
+
+    result = mDevice->waitForFences(swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].InFlight.get(), VK_TRUE, UINT64_MAX);
+
+    if (result != vk::Result::eSuccess)
+    {
+        Console::Throw("Failed to await fences: {}", vk::to_string(result));
+    }
+
+    result = mDevice->resetFences(swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].InFlight.get());
+
+    if (result != vk::Result::eSuccess)
+    {
+        Console::Throw("Failed to reset fences: {}", vk::to_string(result));
+    }
+}
+
+std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain)
+{
+    auto semaphore = swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].ImageAvailable.get();
+
+    auto [result, imageIndex] = mDevice->acquireNextImageKHR(swapchain.GetSwapchain(), UINT64_MAX, semaphore, nullptr);
+
+    if (result == vk::Result::eSuboptimalKHR)
+    {
+        Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+        renderer.mRebuildSwapchainSuboptimal = true;
+    }
+    else if (result == vk::Result::eErrorOutOfDateKHR)
+    {
+        Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
+
+        renderer.mRebuildSwapchainOutOfDate = true;
+    }
+    else if (result != vk::Result::eSuccess)
+    {
+        Console::Throw("Failed to acquire next image index: {}", vk::to_string(result));
+    }
+
+    return imageIndex;
+}
+
+void Mosaic::VulkanDevice::WaitIdle()
+{
+    auto result = mDevice->waitIdle();
+
+    if (result != vk::Result::eSuccess)
+    {
+        Console::Throw("Failed to wait for vk::Device idle state: {}", vk::to_string(result));
+    }
 }

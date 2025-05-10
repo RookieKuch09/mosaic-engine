@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <glm/glm.hpp>
+
 namespace Mosaic
 {
     class VulkanDevice;
@@ -10,6 +12,15 @@ namespace Mosaic
     class VulkanRenderPass;
     class VulkanFramebuffer;
 
+    struct VulkanFrameSubmitDescriptor
+    {
+        vk::CommandBuffer Command;
+        vk::Semaphore WaitSemaphore;
+        vk::Semaphore SignalSemaphore;
+        vk::Fence InFlightFence;
+        vk::PipelineStageFlags WaitStage;
+    };
+
     class VulkanCommandSystem
     {
     public:
@@ -17,7 +28,11 @@ namespace Mosaic
         void AllocateCommandBuffers(VulkanDevice& device, VulkanSwapchain& swapchain);
         void BeginFrame(std::uint32_t imageIndex);
         void EndFrame(std::uint32_t imageIndex);
-        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, std::uint32_t imageIndex);
+        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, std::uint32_t imageIndex, const glm::fvec4& clear);
+
+        void Reset();
+
+        void SubmitFrame(vk::Queue graphicsQueue, const VulkanFrameSubmitDescriptor& info);
 
         vk::CommandBuffer& GetCommandBuffer(std::uint32_t imageIndex);
 

@@ -4,7 +4,7 @@
 #include "../../../include/application/console.hpp"
 
 Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
-    : mApplicationData(applicationData)
+    : mApplicationData(applicationData), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
 {
 }
 
@@ -29,10 +29,28 @@ void Mosaic::VulkanRenderer::Create()
 
     mQueues.Load(mDevice);
 
+    mRenderPass.Create(mDevice, mSurface);
+
+    CreateSwapchain();
+}
+
+void Mosaic::VulkanRenderer::CreateSwapchain()
+{
+    mDevice.WaitIdle();
+
+    mCommandSystem.Reset();
+
+    for (auto& framebuffer : mFramebuffers)
+    {
+        framebuffer.Reset();
+    }
+
+    mFramebuffers.clear();
+
+    mSwapchain.Reset();
+
     mSwapchain.Create(mApplicationData->Window, mDevice, mPhysicalDevice, mSurface, mVSync);
     mSwapchain.CreateSyncObjects(mDevice);
-
-    mRenderPass.Create(mDevice, mSurface);
 
     mFramebuffers.resize(mSwapchain.GetImageCount());
 
@@ -46,10 +64,56 @@ void Mosaic::VulkanRenderer::Create()
 
     mCommandSystem.Create(mDevice, mQueues);
     mCommandSystem.AllocateCommandBuffers(mDevice, mSwapchain);
+
+    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+    {
+        Console::LogSuccess("Successfully rebuilt swapchain");
+    }
 }
 
 void Mosaic::VulkanRenderer::Update()
 {
+    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+    {
+        CreateSwapchain();
+
+        mRebuildSwapchainSuboptimal = false;
+        mRebuildSwapchainOutOfDate = false;
+    }
+
+    auto current = mSwapchain.GetCurrentFrame();
+    auto& frameSync = mSwapchain.GetSyncFrames()[current];
+
+    mDevice.AwaitFences(mSwapchain);
+
+    std::uint32_t imageIndex = mDevice.GetNextImageIndex(*this, mSwapchain);
+
+    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+    {
+        return;
+    }
+
+    mCommandSystem.BeginFrame(imageIndex);
+    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, mClearColour);
+    mCommandSystem.EndFrame(imageIndex);
+
+    VulkanFrameSubmitDescriptor frameSubmitDescriptor = {
+        mCommandSystem.GetCommandBuffer(imageIndex),
+        frameSync.ImageAvailable.get(),
+        frameSync.RenderFinished.get(),
+        frameSync.InFlight.get(),
+        vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    mCommandSystem.SubmitFrame(mQueues.GetGraphicsQueue(), frameSubmitDescriptor);
+
+    mSwapchain.PresentFrame(*this, mQueues, imageIndex);
+
+    if (mRebuildSwapchainOutOfDate)
+    {
+        return;
+    }
+
+    mSwapchain.IncrementFrame();
 }
 
 void Mosaic::VulkanRenderer::LoadConfig()

@@ -93,6 +93,7 @@ void Mosaic::VulkanQueues::Load(VulkanDevice& device)
     mGraphicsQueue = logicalDevice.getQueue(mGraphicsFamily.value(), 0);
     mComputeQueue = logicalDevice.getQueue(mComputeFamily.value(), 0);
     mTransferQueue = logicalDevice.getQueue(mTransferFamily.value(), 0);
+    mPresentQueue = logicalDevice.getQueue(mPresentFamily.value(), 0);
 }
 
 std::vector<vk::DeviceQueueCreateInfo>& Mosaic::VulkanQueues::GetQueueCreateInfo()
