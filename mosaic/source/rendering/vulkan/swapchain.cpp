@@ -1,141 +1,71 @@
 #include "../../../include/rendering/vulkan/swapchain.hpp"
+#include "../../../include/rendering/vulkan/devices.hpp"
+#include "../../../include/rendering/vulkan/surface.hpp"
 
 #include "../../../include/application/console.hpp"
 #include "../../../include/application/renderer.hpp"
+#include "../../../include/application/window.hpp"
 
-/*
-
-void Mosaic::CreateSwapchain(
-    vk::UniqueDevice& device,
-    vk::UniqueSurfaceKHR& surface,
-    vk::SurfaceFormatKHR& format,
-    vk::Extent2D extent,
-    std::uint32_t minBuffers,
-    vk::PresentModeKHR presentMode,
-    vk::UniqueSwapchainKHR& swapchain)
+void Mosaic::VulkanFramebuffer::Create(VulkanDevice& device, VulkanSurface& surface, VulkanRenderPass& renderPass, VulkanSwapchain& swapchain)
 {
-    vk::SwapchainCreateInfoKHR createInfo{
+    auto& image = swapchain.GetImage(mIndex);
+
+    vk::ImageViewCreateInfo createInfo = {
         {},
-        *surface,
-        minBuffers,
-        format.format,
-        format.colorSpace,
-        extent,
+        image,
+        vk::ImageViewType::e2D,
+        surface.GetFormat().format,
+        vk::ComponentMapping(),
+        vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)};
+
+    auto imageViewResult = device.Get().createImageViewUnique(createInfo);
+
+    if (imageViewResult.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error creating vk::ImageView for vk::Framebuffer: {}", vk::to_string(imageViewResult.result));
+    }
+
+    mImageView = std::move(imageViewResult.value);
+
+    vk::FramebufferCreateInfo framebufferCreateInfo = {
+        {},
+        renderPass.GetRenderPass(),
         1,
-        vk::ImageUsageFlagBits::eColorAttachment,
-        vk::SharingMode::eExclusive,
-        0,
-        nullptr,
-        vk::SurfaceTransformFlagBitsKHR::eIdentity,
-        vk::CompositeAlphaFlagBitsKHR::eOpaque,
-        presentMode,
-        VK_TRUE,
-        nullptr};
+        &mImageView.get(),
+        swapchain.GetExtent().width,
+        swapchain.GetExtent().height,
+        1};
 
-    swapchain = device->createSwapchainKHRUnique(createInfo);
+    auto framebufferResult = device.Get().createFramebufferUnique(framebufferCreateInfo);
+
+    if (framebufferResult.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error creating vk::Framebuffer: {}", vk::to_string(framebufferResult.result));
+    }
+
+    mFramebuffer = std::move(framebufferResult.value);
 }
 
-void Mosaic::GetSwapchainData(
-    vk::PhysicalDevice& physicalDevice,
-    vk::UniqueSurfaceKHR& surface,
-    vk::SurfaceFormatKHR& format,
-    vk::Extent2D& extent,
-    RendererVSync preferredMode,
-    vk::PresentModeKHR& presentMode,
-    const glm::uvec2& size,
-    std::uint32_t& imageCount)
+vk::Framebuffer& Mosaic::VulkanFramebuffer::GetFramebuffer()
 {
-    auto formats = physicalDevice.getSurfaceFormatsKHR(*surface);
-    auto presentModes = physicalDevice.getSurfacePresentModesKHR(*surface);
-    auto caps = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
-
-    if (formats.empty() or presentModes.empty())
-    {
-        Console::Throw("Surface does not support any formats or present modes");
-    }
-
-    vk::Format favFmt = vk::Format::eB8G8R8A8Unorm;
-    vk::ColorSpaceKHR favSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
-
-    auto match = [&](auto const& f)
-    {
-        return f.format == favFmt and f.colorSpace == favSpace;
-    };
-
-    auto itf = std::find_if(formats.begin(), formats.end(), match);
-
-    format = (itf != formats.end() ? *itf : formats[0]);
-
-    auto supports = [&](vk::PresentModeKHR mode)
-    {
-        return std::find(presentModes.begin(), presentModes.end(), mode) != presentModes.end();
-    };
-
-    std::vector<vk::PresentModeKHR> fallbackList;
-
-    switch (preferredMode)
-    {
-        case RendererVSync::Disabled:
-            fallbackList = {
-                vk::PresentModeKHR::eImmediate,
-                vk::PresentModeKHR::eMailbox,
-                vk::PresentModeKHR::eFifoLatestReadyEXT,
-                vk::PresentModeKHR::eFifoRelaxed,
-                vk::PresentModeKHR::eFifo};
-            break;
-
-        case RendererVSync::Strict:
-            fallbackList = {
-                vk::PresentModeKHR::eMailbox,
-                vk::PresentModeKHR::eFifoLatestReadyEXT,
-                vk::PresentModeKHR::eFifoRelaxed,
-                vk::PresentModeKHR::eFifo};
-            break;
-
-        case RendererVSync::Relaxed:
-            fallbackList = {
-                vk::PresentModeKHR::eFifoLatestReadyEXT,
-                vk::PresentModeKHR::eFifoRelaxed,
-                vk::PresentModeKHR::eFifo};
-            break;
-    }
-
-    auto it = std::find_if(fallbackList.begin(), fallbackList.end(), supports);
-    presentMode = (it != fallbackList.end() ? *it : vk::PresentModeKHR::eFifo);
-
-    imageCount = std::max(2u, caps.minImageCount);
-
-    if (caps.maxImageCount > 0)
-    {
-        imageCount = std::min(imageCount + 1, caps.maxImageCount);
-    }
-    else
-    {
-        imageCount += 1;
-    }
-
-    if (caps.currentExtent.width != std::numeric_limits<std::uint32_t>::max())
-    {
-        extent = caps.currentExtent;
-    }
-    else
-    {
-        vk::Extent2D chosen{
-            std::clamp(caps.minImageExtent.width, size.x, caps.maxImageExtent.width),
-            std::clamp(caps.minImageExtent.height, size.y, caps.maxImageExtent.height)};
-
-        extent = chosen;
-    }
+    return *mFramebuffer;
 }
 
-void Mosaic::CreateRenderPass(
-    vk::UniqueDevice& device,
-    vk::SurfaceFormatKHR& format,
-    vk::UniqueRenderPass& renderPass)
+vk::ImageView& Mosaic::VulkanFramebuffer::GetImageView()
+{
+    return *mImageView;
+}
+
+std::uint32_t& Mosaic::VulkanFramebuffer::GetIndex()
+{
+    return mIndex;
+}
+
+void Mosaic::VulkanRenderPass::Create(VulkanDevice& device, VulkanSurface& surface)
 {
     vk::AttachmentDescription colourAttachment = {
         {},
-        format.format,
+        surface.GetFormat().format,
         vk::SampleCountFlagBits::e1,
         vk::AttachmentLoadOp::eClear,
         vk::AttachmentStoreOp::eStore,
@@ -173,50 +103,164 @@ void Mosaic::CreateRenderPass(
         1,
         &dependency};
 
-    renderPass = device->createRenderPassUnique(renderPassInfo);
-}
+    auto result = device.Get().createRenderPassUnique(renderPassInfo);
 
-void Mosaic::CreateSwapchainImages(
-    vk::UniqueDevice& device,
-    vk::SurfaceFormatKHR& format,
-    std::vector<vk::Image>& swapchainImages,
-    std::vector<vk::UniqueImageView>& imageViews)
-{
-    for (auto& image : swapchainImages)
+    if (result.result != vk::Result::eSuccess)
     {
-        vk::ImageViewCreateInfo createInfo = {
-            {},
-            image,
-            vk::ImageViewType::e2D,
-            format.format,
-            vk::ComponentMapping(),
-            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1)};
-
-        imageViews.push_back(device->createImageViewUnique(createInfo));
+        Console::Throw("Error creating vk::RenderPass: {}", vk::to_string(result.result));
     }
+
+    mRenderPass = std::move(result.value);
 }
 
-void Mosaic::CreateFramebuffers(
-    vk::UniqueDevice& device,
-    vk::SurfaceFormatKHR& format,
-    vk::UniqueRenderPass& renderPass,
-    vk::Extent2D& swapchainExtent,
-    std::vector<vk::UniqueFramebuffer>& swapchainFramebuffers,
-    std::vector<vk::UniqueImageView>& swapchainImageViews)
+vk::RenderPass& Mosaic::VulkanRenderPass::GetRenderPass()
 {
-    for (auto& image : swapchainImageViews)
-    {
-        vk::FramebufferCreateInfo framebufferCreateInfo = {
-            {},
-            *renderPass,
-            1,
-            &*image,
-            swapchainExtent.width,
-            swapchainExtent.height,
-            1};
-
-        swapchainFramebuffers.push_back(device->createFramebufferUnique(framebufferCreateInfo));
-    }
+    return *mRenderPass;
 }
 
-*/
+void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
+{
+    auto presentResult = physicalDevice.Get().getSurfacePresentModesKHR(surface.GetHandle());
+    auto capabilitiesResult = physicalDevice.Get().getSurfaceCapabilitiesKHR(surface.GetHandle());
+
+    if (presentResult.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error querying vk::Surface supported presentation modes: {}", vk::to_string(presentResult.result));
+    }
+
+    if (capabilitiesResult.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error querying vk::Surface capabilities: {}", vk::to_string(presentResult.result));
+    }
+
+    auto& presentModes = presentResult.value;
+    auto& capabilities = capabilitiesResult.value;
+
+    if (presentModes.empty())
+    {
+        Console::Throw("vk::Surface does not support any present modes");
+    }
+
+    auto supports = [&](vk::PresentModeKHR mode)
+    {
+        return std::find(presentModes.begin(), presentModes.end(), mode) != presentModes.end();
+    };
+
+    std::vector<vk::PresentModeKHR> fallbackList;
+
+    switch (vsync)
+    {
+        case (RendererVSync::Disabled):
+        {
+            fallbackList = {
+                vk::PresentModeKHR::eImmediate,
+                vk::PresentModeKHR::eMailbox,
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
+        }
+
+        case (RendererVSync::Strict):
+        {
+            fallbackList = {
+                vk::PresentModeKHR::eMailbox,
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
+        }
+
+        case (RendererVSync::Relaxed):
+        {
+            fallbackList = {
+                vk::PresentModeKHR::eFifoLatestReadyEXT,
+                vk::PresentModeKHR::eFifoRelaxed,
+                vk::PresentModeKHR::eFifo};
+            break;
+        }
+    }
+
+    auto it = std::find_if(fallbackList.begin(), fallbackList.end(), supports);
+    mPresentMode = (it != fallbackList.end() ? *it : vk::PresentModeKHR::eFifo);
+
+    mImageCount = std::max(2u, capabilities.minImageCount);
+
+    if (capabilities.maxImageCount > 0)
+    {
+        mImageCount = std::min(mImageCount + 1, capabilities.maxImageCount);
+    }
+    else
+    {
+        mImageCount += 1;
+    }
+
+    if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max())
+    {
+        mSwapchainExtent = capabilities.currentExtent;
+    }
+    else
+    {
+        vk::Extent2D chosen{
+            std::clamp(window.GetSize().x, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+            std::clamp(window.GetSize().y, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)};
+
+        mSwapchainExtent = chosen;
+    }
+
+    vk::SwapchainCreateInfoKHR createInfo{
+        {},
+        surface.GetHandle(),
+        mImageCount,
+        surface.GetFormat().format,
+        surface.GetFormat().colorSpace,
+        mSwapchainExtent,
+        1,
+        vk::ImageUsageFlagBits::eColorAttachment,
+        vk::SharingMode::eExclusive,
+        0,
+        nullptr,
+        vk::SurfaceTransformFlagBitsKHR::eIdentity,
+        vk::CompositeAlphaFlagBitsKHR::eOpaque,
+        mPresentMode,
+        VK_TRUE,
+        mSwapchain ? mSwapchain.get() : nullptr};
+
+    auto result = device.Get().createSwapchainKHRUnique(createInfo);
+
+    if (result.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error creating vk::Swapchain: {}", vk::to_string(result.result));
+    }
+
+    mSwapchain = std::move(result.value);
+
+    auto imagesResult = device.Get().getSwapchainImagesKHR(mSwapchain.get());
+
+    if (imagesResult.result != vk::Result::eSuccess)
+    {
+        Console::Throw("Error getting vk::Swapchain images: {}", vk::to_string(imagesResult.result));
+    }
+
+    mSwapchainImages = std::move(imagesResult.value);
+}
+
+vk::SwapchainKHR& Mosaic::VulkanSwapchain::GetSwapchain()
+{
+    return *mSwapchain;
+}
+
+vk::Extent2D& Mosaic::VulkanSwapchain::GetExtent()
+{
+    return mSwapchainExtent;
+}
+
+vk::Image& Mosaic::VulkanSwapchain::GetImage(std::uint32_t index)
+{
+    return mSwapchainImages[index];
+}
+
+std::uint32_t Mosaic::VulkanSwapchain::GetImageCount()
+{
+    return mImageCount;
+}

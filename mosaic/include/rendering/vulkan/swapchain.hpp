@@ -6,57 +6,74 @@
 
 namespace Mosaic
 {
-    struct ApplicationData;
+    class Window;
 
     enum class RendererVSync : int;
-}
 
-namespace Mosaic
-{
-    void CreateSwapchain(
-        vk::UniqueDevice& device,
-        vk::UniqueSurfaceKHR& surface,
-        vk::SurfaceFormatKHR& format,
-        vk::Extent2D extent,
-        std::uint32_t minBuffers,
-        vk::PresentModeKHR presentMode,
-        vk::UniqueSwapchainKHR& swapchain);
+    struct ApplicationData;
 
-    void GetSwapchainData(
-        vk::PhysicalDevice& physicalDevice,
-        vk::UniqueSurfaceKHR& surface,
-        vk::SurfaceFormatKHR& format,
-        vk::Extent2D& extent,
-        RendererVSync preferredMode,
-        vk::PresentModeKHR& presentMode,
-        const glm::uvec2& size,
-        uint32_t& imageCount);
+    class VulkanPhysicalDevice;
+    class VulkanDevice;
+    class VulkanSurface;
+    class VulkanRenderPass;
+    class VulkanSwapchain;
 
-    void CreateRenderPass(
-        vk::UniqueDevice& device,
-        vk::SurfaceFormatKHR& format,
-        vk::UniqueRenderPass& renderPass);
+    struct VulkanFrameSyncObjects
+    {
+        vk::UniqueSemaphore ImageAvailable;
+        vk::UniqueSemaphore RenderFinished;
+        vk::UniqueFence InFlight;
+    };
 
-    void CreateSwapchainImages(
-        vk::UniqueDevice& device,
-        vk::SurfaceFormatKHR& format,
-        std::vector<vk::Image>& swapchainImages,
-        std::vector<vk::UniqueImageView>& imageViews);
+    class VulkanFramebuffer
+    {
+    public:
+        void Create(VulkanDevice& device, VulkanSurface& surface, VulkanRenderPass& renderPass, VulkanSwapchain& swapchain);
 
-    void CreateFramebuffers(
-        vk::UniqueDevice& device,
-        vk::SurfaceFormatKHR& format,
-        vk::UniqueRenderPass& renderPass,
-        vk::Extent2D& swapchainExtent,
-        std::vector<vk::UniqueFramebuffer>& swapchainFramebuffers,
-        std::vector<vk::UniqueImageView>& swapchainImageViews);
+        vk::Framebuffer& GetFramebuffer();
+        vk::ImageView& GetImageView();
+
+        std::uint32_t& GetIndex();
+
+    private:
+        vk::UniqueFramebuffer mFramebuffer;
+        vk::UniqueImageView mImageView;
+
+        std::uint32_t mIndex;
+    };
+
+    class VulkanRenderPass
+    {
+    public:
+        void Create(VulkanDevice& device, VulkanSurface& surface);
+
+        vk::RenderPass& GetRenderPass();
+
+    private:
+        vk::UniqueRenderPass mRenderPass;
+    };
 
     class VulkanSwapchain
     {
-    private:
-        void Create();
-        void Delete();
+    public:
+        void Create(Window& window, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
+        void CreateSyncObjects();
 
-        friend class VulkanRenderer;
+        vk::SwapchainKHR& GetSwapchain();
+        vk::Extent2D& GetExtent();
+        vk::Image& GetImage(std::uint32_t index);
+        std::uint32_t GetImageCount();
+
+    private:
+        vk::UniqueSwapchainKHR mSwapchain;
+        vk::Extent2D mSwapchainExtent;
+
+        vk::PresentModeKHR mPresentMode;
+
+        std::uint32_t mImageCount;
+
+        std::vector<vk::Image> mSwapchainImages;
+        std::vector<VulkanFrameSyncObjects> mSyncFrames;
+        std::vector<vk::Fence> mImagesInFlight;
     };
 }

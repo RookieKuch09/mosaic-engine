@@ -6,6 +6,7 @@
 #include "instance.hpp"
 #include "queues.hpp"
 #include "surface.hpp"
+#include "swapchain.hpp"
 
 #include <vulkan/vulkan.hpp>
 
@@ -29,6 +30,10 @@ namespace Mosaic
         VulkanDevice mDevice;
         VulkanQueues mQueues;
         VulkanSurface mSurface;
+        VulkanSwapchain mSwapchain;
+        VulkanRenderPass mRenderPass;
+
+        std::vector<VulkanFramebuffer> mFramebuffers;
 
         ApplicationData* mApplicationData;
     };

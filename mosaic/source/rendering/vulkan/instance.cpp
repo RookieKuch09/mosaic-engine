@@ -15,18 +15,14 @@ void Mosaic::VulkanInstance::SelectWindowExtensions(const Window& window)
 
 void Mosaic::VulkanInstance::SelectExtensions(const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist)
 {
-    std::vector<vk::ExtensionProperties> availableExtensions;
-
     auto result = vk::enumerateInstanceExtensionProperties();
 
     if (result.result != vk::Result::eSuccess)
     {
         Console::Throw("Error querying vk::Instance supported extensions: {}", vk::to_string(result.result));
     }
-    else
-    {
-        availableExtensions = std::move(result.value);
-    }
+
+    auto& availableExtensions = result.value;
 
     std::unordered_set<std::string> available;
 
@@ -67,18 +63,14 @@ void Mosaic::VulkanInstance::SelectExtensions(const std::unordered_set<std::stri
 
 void Mosaic::VulkanInstance::SelectLayers(const std::unordered_set<std::string>& selected)
 {
-    std::vector<vk::LayerProperties> availableLayers;
-
     auto result = vk::enumerateInstanceLayerProperties();
 
     if (result.result != vk::Result::eSuccess)
     {
         Console::Throw("Error querying vk::Instance supported layers: {}", vk::to_string(result.result));
     }
-    else
-    {
-        availableLayers = std::move(result.value);
-    }
+
+    auto& availableLayers = result.value;
 
     for (const auto& request : selected)
     {
@@ -139,10 +131,8 @@ void Mosaic::VulkanInstance::Create()
     {
         Console::Throw("Error creating vk::Instance: {}", vk::to_string(result.result));
     }
-    else
-    {
-        mInstance = std::move(result.value);
-    }
+
+    mInstance = std::move(result.value);
 }
 
 vk::Instance& Mosaic::VulkanInstance::Get()
