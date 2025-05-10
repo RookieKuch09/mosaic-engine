@@ -6,6 +6,7 @@
 Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
     : mApplicationData(applicationData), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
 {
+    mApplicationData->EventManager.Subscribe(this, &VulkanRenderer::ResizeCallback);
 }
 
 void Mosaic::VulkanRenderer::Create()
@@ -118,4 +119,11 @@ void Mosaic::VulkanRenderer::Update()
 
 void Mosaic::VulkanRenderer::LoadConfig()
 {
+}
+
+void Mosaic::VulkanRenderer::ResizeCallback(const WindowResizeEvent& event)
+{
+    mWindowSize = event.Size;
+
+    mRebuildSwapchainOutOfDate = true;
 }

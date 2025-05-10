@@ -45,12 +45,12 @@ void Mosaic::VulkanFramebuffer::Reset()
 
 vk::Framebuffer& Mosaic::VulkanFramebuffer::GetFramebuffer()
 {
-    return *mFramebuffer;
+    return mFramebuffer.get();
 }
 
 vk::ImageView& Mosaic::VulkanFramebuffer::GetImageView()
 {
-    return *mImageView;
+    return mImageView.get();
 }
 
 std::uint32_t& Mosaic::VulkanFramebuffer::GetIndex()
@@ -105,7 +105,7 @@ void Mosaic::VulkanRenderPass::Create(VulkanDevice& device, VulkanSurface& surfa
 
 vk::RenderPass& Mosaic::VulkanRenderPass::GetRenderPass()
 {
-    return *mRenderPass;
+    return mRenderPass.get();
 }
 
 void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
@@ -283,14 +283,10 @@ void Mosaic::VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueue
 
         if (result == vk::Result::eSuboptimalKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainSuboptimal = true;
         }
         else if (result == vk::Result::eErrorOutOfDateKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainOutOfDate = true;
         }
         else if (result != vk::Result::eSuccess)
@@ -304,14 +300,10 @@ void Mosaic::VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueue
 
         if (result == vk::Result::eSuboptimalKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainSuboptimal = true;
         }
         else if (result == vk::Result::eErrorOutOfDateKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Queue::presentKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainOutOfDate = true;
         }
         else if (result != vk::Result::eSuccess)

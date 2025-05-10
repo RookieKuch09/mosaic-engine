@@ -154,14 +154,10 @@ std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, 
 
         if (result == vk::Result::eSuboptimalKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainSuboptimal = true;
         }
         else if (result == vk::Result::eErrorOutOfDateKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainOutOfDate = true;
         }
         else if (result != vk::Result::eSuccess)
@@ -175,14 +171,10 @@ std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, 
 
         if (result == vk::Result::eSuboptimalKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainSuboptimal = true;
         }
         else if (result == vk::Result::eErrorOutOfDateKHR)
         {
-            Console::LogNotice("Resize flagged from vk::Device::acquireNextImageKHR: {}", vk::to_string(result));
-
             renderer.mRebuildSwapchainOutOfDate = true;
         }
         else if (result != vk::Result::eSuccess)

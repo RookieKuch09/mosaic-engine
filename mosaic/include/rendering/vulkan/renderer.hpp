@@ -11,6 +11,8 @@
 
 namespace Mosaic
 {
+    struct WindowResizeEvent;
+
     class VulkanRenderer : public RendererInterface
     {
     public:
@@ -23,6 +25,10 @@ namespace Mosaic
         void Update() override;
 
         void LoadConfig() override;
+
+        void ResizeCallback(const WindowResizeEvent& event);
+
+        glm::uvec2 mWindowSize;
 
         VulkanInstance mInstance;
         VulkanPhysicalDevice mPhysicalDevice;
