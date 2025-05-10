@@ -63,6 +63,7 @@ namespace Mosaic
         vk::Extent2D& GetExtent();
         vk::Image& GetImage(std::uint32_t index);
         std::uint32_t GetImageCount();
+        std::uint32_t GetInFlightFrames();
 
     private:
         vk::UniqueSwapchainKHR mSwapchain;

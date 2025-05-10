@@ -64,14 +64,9 @@ void Mosaic::Renderer::Create()
     mRendererInstance->Create();
 }
 
-void Mosaic::Renderer::PreUpdate()
+void Mosaic::Renderer::Update()
 {
-    mRendererInstance->PreUpdate();
-}
-
-void Mosaic::Renderer::PostUpdate()
-{
-    mRendererInstance->PostUpdate();
+    mRendererInstance->Update();
 }
 
 void Mosaic::Renderer::LoadConfig()

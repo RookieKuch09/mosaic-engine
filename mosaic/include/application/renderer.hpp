@@ -26,8 +26,7 @@ namespace Mosaic
     protected:
         virtual void Create() = 0;
 
-        virtual void PreUpdate() = 0;
-        virtual void PostUpdate() = 0;
+        virtual void Update() = 0;
 
         virtual void LoadConfig() = 0;
 
@@ -56,8 +55,7 @@ namespace Mosaic
     private:
         void Create();
 
-        void PreUpdate();
-        void PostUpdate();
+        void Update();
 
         RendererInterface* mRendererInstance;
         ApplicationData* mApplicationData;

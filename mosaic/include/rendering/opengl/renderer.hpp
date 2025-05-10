@@ -19,8 +19,7 @@ namespace Mosaic
     private:
         void Create() override;
 
-        void PreUpdate() override;
-        void PostUpdate() override;
+        void Update() override;
 
         void LoadConfig() override;
 

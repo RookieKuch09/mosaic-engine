@@ -1,6 +1,7 @@
 #include "../../../include/rendering/vulkan/renderer.hpp"
 
 #include "../../../include/application/application.hpp"
+#include "../../../include/application/console.hpp"
 
 Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
     : mApplicationData(applicationData)
@@ -18,15 +19,15 @@ void Mosaic::VulkanRenderer::Create()
 
     mPhysicalDevice.Select(mInstance);
 
-    mQueues.Discover(mPhysicalDevice);
+    mSurface.Create(mApplicationData->Window, mInstance);
+    mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
+
+    mQueues.Discover(mPhysicalDevice, mSurface);
 
     mDevice.GetExtensions(mPhysicalDevice, {}, {"VK_EXT_buffer_device_address"});
     mDevice.Create(mQueues, mPhysicalDevice);
 
     mQueues.Load(mDevice);
-
-    mSurface.Create(mApplicationData->Window, mInstance);
-    mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
 
     mSwapchain.Create(mApplicationData->Window, mDevice, mPhysicalDevice, mSurface, mVSync);
     mSwapchain.CreateSyncObjects(mDevice);
@@ -42,13 +43,12 @@ void Mosaic::VulkanRenderer::Create()
         framebuffer.GetIndex() = index;
         framebuffer.Create(mDevice, mSurface, mRenderPass, mSwapchain);
     }
+
+    mCommandSystem.Create(mDevice, mQueues);
+    mCommandSystem.AllocateCommandBuffers(mDevice, mSwapchain);
 }
 
-void Mosaic::VulkanRenderer::PreUpdate()
-{
-}
-
-void Mosaic::VulkanRenderer::PostUpdate()
+void Mosaic::VulkanRenderer::Update()
 {
 }
 

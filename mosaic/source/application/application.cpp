@@ -42,13 +42,10 @@ std::int32_t Mosaic::Application::Run()
         while (Data.Window.mRunning)
         {
             Data.Window.Update();
-
             Data.InputManager.Update();
-
-            Data.Renderer.PreUpdate();
             Data.ComponentManager.Update();
             Data.EventManager.Update();
-            Data.Renderer.PostUpdate();
+            Data.Renderer.Update();
         }
 
         Data.ComponentManager.Stop();

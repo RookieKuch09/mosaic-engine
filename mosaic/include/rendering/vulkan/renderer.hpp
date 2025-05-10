@@ -2,13 +2,12 @@
 
 #include "../../application/renderer.hpp"
 
+#include "commands.hpp"
 #include "devices.hpp"
 #include "instance.hpp"
 #include "queues.hpp"
 #include "surface.hpp"
 #include "swapchain.hpp"
-
-#include <vulkan/vulkan.hpp>
 
 namespace Mosaic
 {
@@ -20,8 +19,7 @@ namespace Mosaic
     private:
         void Create() override;
 
-        void PreUpdate() override;
-        void PostUpdate() override;
+        void Update() override;
 
         void LoadConfig() override;
 
@@ -32,6 +30,7 @@ namespace Mosaic
         VulkanSurface mSurface;
         VulkanSwapchain mSwapchain;
         VulkanRenderPass mRenderPass;
+        VulkanCommandSystem mCommandSystem;
 
         std::vector<VulkanFramebuffer> mFramebuffers;
 

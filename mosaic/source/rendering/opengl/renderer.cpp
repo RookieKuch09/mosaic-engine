@@ -33,15 +33,12 @@ void Mosaic::OpenGLRenderer::Create()
     mApplicationData->EventManager.Subscribe(this, &OpenGLRenderer::OnResize);
 }
 
-void Mosaic::OpenGLRenderer::PreUpdate()
+void Mosaic::OpenGLRenderer::Update()
 {
     glClearColor(mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.a);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
 
-void Mosaic::OpenGLRenderer::PostUpdate()
-{
     SDL_GL_SwapWindow(mApplicationData->Window.mHandle);
 }
 

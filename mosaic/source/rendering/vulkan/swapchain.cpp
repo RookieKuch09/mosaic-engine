@@ -305,3 +305,8 @@ std::uint32_t Mosaic::VulkanSwapchain::GetImageCount()
 {
     return mImageCount;
 }
+
+std::uint32_t Mosaic::VulkanSwapchain::GetInFlightFrames()
+{
+    return mFramesInFlight;
+}
