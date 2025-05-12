@@ -15,7 +15,7 @@ void Mosaic::VulkanRenderer::Create()
 
     mInstance.SelectWindowExtensions(mApplicationData->Window);
     mInstance.SelectExtensions({}, {});
-    mInstance.SelectLayers({"VK_LAYER_KHRONOS_validation"});
+    mInstance.SelectLayers({});
     mInstance.Create();
 
     mPhysicalDevice.Select(mInstance);
@@ -25,7 +25,7 @@ void Mosaic::VulkanRenderer::Create()
 
     mQueues.Discover(mPhysicalDevice, mSurface);
 
-    mDevice.GetExtensions(mPhysicalDevice, {}, {"VK_EXT_buffer_device_address"});
+    mDevice.GetExtensions(mPhysicalDevice, {}, {});
     mDevice.Create(mQueues, mPhysicalDevice);
 
     mRenderPass.Create(mDevice, mSurface);

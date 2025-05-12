@@ -15,12 +15,12 @@ Mosaic::Renderer::Renderer(ApplicationData& applicationData)
 
 glm::fvec4 Mosaic::Renderer::GetClearColour() const
 {
-    return mClearColour;
+    return mRendererInstance->mClearColour;
 }
 
 void Mosaic::Renderer::SetClearColour(const glm::fvec4& colour)
 {
-    mClearColour = colour;
+    mRendererInstance->mClearColour = colour;
 }
 
 Mosaic::RendererAPI Mosaic::Renderer::GetRendererAPI() const

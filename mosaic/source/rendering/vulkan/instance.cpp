@@ -7,9 +7,25 @@ void Mosaic::VulkanInstance::SelectWindowExtensions(const Window& window)
 {
     auto extensions = window.GetVulkanRequiredInstanceExtensions();
 
+    auto availableExtensions = vk::enumerateInstanceExtensionProperties();
+
+    std::unordered_set<std::string> available;
+
+    for (const auto& ext : availableExtensions)
+    {
+        available.insert(ext.extensionName);
+    }
+
     for (const auto& extension : extensions)
     {
-        mExtensions.push_back(extension);
+        if (available.contains(extension))
+        {
+            mExtensions.push_back(extension);
+        }
+        else
+        {
+            Console::LogWarning("vk::Instance extension not supported by system: {}", extension);
+        }
     }
 }
 
