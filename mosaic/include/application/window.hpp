@@ -1,7 +1,8 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <glm/glm.hpp>
+
+#include "../utilities/vector.hpp"
 
 #include <string>
 #include <unordered_set>
@@ -18,12 +19,12 @@ namespace Mosaic
 
     struct WindowMoveEvent
     {
-        glm::uvec2 Position;
+        Vector2<std::uint32_t> Position;
     };
 
     struct WindowResizeEvent
     {
-        glm::uvec2 Size;
+        Vector2<std::uint32_t> Size;
     };
 
     class Window
@@ -32,11 +33,11 @@ namespace Mosaic
         Window(ApplicationData& applicationData);
         ~Window();
 
-        glm::uvec2 GetSize() const;
-        void SetSize(const glm::uvec2& size);
+        Vector2<std::uint32_t> GetSize() const;
+        void SetSize(const Vector2<std::uint32_t>& size);
 
-        glm::uvec2 GetPosition() const;
-        void SetPosition(const glm::uvec2& position);
+        Vector2<std::uint32_t> GetPosition() const;
+        void SetPosition(const Vector2<std::uint32_t>& position);
 
         std::string GetTitle() const;
         void SetTitle(const std::string& title);
@@ -64,8 +65,8 @@ namespace Mosaic
         std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
         void GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const;
 
-        glm::uvec2 mSize;
-        glm::uvec2 mPosition;
+        Vector2<std::uint32_t> mSize;
+        Vector2<std::uint32_t> mPosition;
 
         std::string mTitle;
         std::string mConfigPath;

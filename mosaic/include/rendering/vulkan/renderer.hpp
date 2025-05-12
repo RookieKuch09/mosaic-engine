@@ -28,7 +28,7 @@ namespace Mosaic
 
         void ResizeCallback(const WindowResizeEvent& event);
 
-        glm::uvec2 mWindowSize;
+        Vector2<std::uint32_t> mWindowSize;
 
         VulkanInstance mInstance;
         VulkanPhysicalDevice mPhysicalDevice;

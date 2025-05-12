@@ -88,16 +88,16 @@ void Mosaic::InputManager::EmitCursorEvents()
     float x, y;
     SDL_GetMouseState(&x, &y);
 
-    const glm::vec2& size = mApplicationData->Window.GetSize();
+    const Vector2<std::uint32_t>& size = mApplicationData->Window.GetSize();
 
-    float normx = x / size.x;
-    float normy = y / size.y;
+    float normx = x / static_cast<float>(size.X);
+    float normy = y / static_cast<float>(size.Y);
 
     float posx = (normx * 2.0f) - 1.0f;
     float posy = 1.0f - (normy * 2.0f);
 
-    glm::vec2 screenPos(x, y);
-    glm::vec2 devicePos(posx, posy);
+    Vector2<float> screenPos(x, y);
+    Vector2<float> devicePos(posx, posy);
 
     CursorMovement movement{.ScreenSpacePosition = screenPos, .DeviceCoordPosition = devicePos};
     mApplicationData->EventManager.Emit<CursorMovement>(movement);

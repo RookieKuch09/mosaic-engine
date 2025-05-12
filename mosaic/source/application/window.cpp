@@ -18,12 +18,12 @@ Mosaic::Window::~Window()
     SDL_Quit();
 }
 
-glm::uvec2 Mosaic::Window::GetSize() const
+Mosaic::Vector2<std::uint32_t> Mosaic::Window::GetSize() const
 {
     return mSize;
 }
 
-glm::uvec2 Mosaic::Window::GetPosition() const
+Mosaic::Vector2<std::uint32_t> Mosaic::Window::GetPosition() const
 {
     return mPosition;
 }
@@ -33,18 +33,18 @@ std::string Mosaic::Window::GetTitle() const
     return mTitle;
 }
 
-void Mosaic::Window::SetSize(const glm::uvec2& size)
+void Mosaic::Window::SetSize(const Vector2<std::uint32_t>& size)
 {
     mSize = size;
 
-    SDL_SetWindowSize(mHandle, mSize.x, mSize.y);
+    SDL_SetWindowSize(mHandle, mSize.X, mSize.X);
 }
 
-void Mosaic::Window::SetPosition(const glm::uvec2& position)
+void Mosaic::Window::SetPosition(const Vector2<std::uint32_t>& position)
 {
     mPosition = position;
 
-    SDL_SetWindowPosition(mHandle, mPosition.x, mPosition.y);
+    SDL_SetWindowPosition(mHandle, mPosition.X, mPosition.X);
 }
 
 void Mosaic::Window::SetTitle(const std::string& title)
@@ -139,7 +139,7 @@ void Mosaic::Window::CreateWindow()
         flags |= SDL_WINDOW_RESIZABLE;
     }
 
-    mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.x, mSize.y, flags);
+    mHandle = SDL_CreateWindow(mTitle.c_str(), mSize.X, mSize.Y, flags);
 
     if (not mHandle)
     {
@@ -156,16 +156,16 @@ void Mosaic::Window::QuitEvent()
 
 void Mosaic::Window::ResizeEvent(const SDL_Event& event)
 {
-    mSize.x = event.window.data1;
-    mSize.y = event.window.data2;
+    mSize.X = event.window.data1;
+    mSize.Y = event.window.data2;
 
     mApplicationData->EventManager.Emit<WindowResizeEvent>({mSize});
 }
 
 void Mosaic::Window::MoveEvent(const SDL_Event& event)
 {
-    mPosition.x = event.window.data1;
-    mPosition.y = event.window.data2;
+    mPosition.X = event.window.data1;
+    mPosition.Y = event.window.data2;
 
     mApplicationData->EventManager.Emit<WindowMoveEvent>({mPosition});
 }
@@ -181,8 +181,8 @@ void Mosaic::Window::LoadConfig()
     mResizable = file.Get<bool>("Window.Resizable", false);
     auto size = file.Get<std::uint32_t, 2>("Window.Size");
 
-    mSize.x = size[0];
-    mSize.y = size[1];
+    mSize.X = size[0];
+    mSize.Y = size[1];
 }
 
 void Mosaic::Window::InitialiseVulkan()

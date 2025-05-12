@@ -180,8 +180,8 @@ void Mosaic::VulkanSwapchain::Create(Window& window, VulkanDevice& device, Vulka
     else
     {
         vk::Extent2D chosen{
-            std::clamp(window.GetSize().x, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
-            std::clamp(window.GetSize().y, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)};
+            std::clamp(window.GetSize().X, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+            std::clamp(window.GetSize().Y, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)};
 
         mSwapchainExtent = chosen;
     }

@@ -13,12 +13,12 @@ Mosaic::Renderer::Renderer(ApplicationData& applicationData)
 {
 }
 
-glm::fvec4 Mosaic::Renderer::GetClearColour() const
+Mosaic::Vector4<float> Mosaic::Renderer::GetClearColour() const
 {
     return mRendererInstance->mClearColour;
 }
 
-void Mosaic::Renderer::SetClearColour(const glm::fvec4& colour)
+void Mosaic::Renderer::SetClearColour(const Vector4<float>& colour)
 {
     mRendererInstance->mClearColour = colour;
 }
@@ -89,7 +89,7 @@ void Mosaic::Renderer::LoadConfig()
     }
     else
     {
-        Console::LogError("Invalid rendering API \"{}\"", api);
+        Console::LogError("Unsupported rendering API \"{}\"", api);
     }
 
     if (vsync == "Disabled")
@@ -109,8 +109,8 @@ void Mosaic::Renderer::LoadConfig()
         Console::Throw("Unsupported VSync mode for Renderer: {}", vsync);
     }
 
-    mClearColour.r = clearColour[0];
-    mClearColour.g = clearColour[1];
-    mClearColour.b = clearColour[2];
-    mClearColour.a = clearColour[3];
+    mClearColour.X = clearColour[0];
+    mClearColour.Y = clearColour[1];
+    mClearColour.Z = clearColour[2];
+    mClearColour.W = clearColour[3];
 }

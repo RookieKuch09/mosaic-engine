@@ -95,7 +95,7 @@ void Mosaic::VulkanRenderer::Update()
     }
 
     mCommandSystem.BeginFrame(imageIndex);
-    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.w});
+    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W});
     mCommandSystem.EndFrame(imageIndex);
 
     VulkanFrameSubmitDescriptor frameSubmitDescriptor = {

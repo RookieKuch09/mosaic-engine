@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "../utilities/vector.hpp"
 
 #include <string>
 
@@ -30,7 +30,7 @@ namespace Mosaic
 
         virtual void LoadConfig() = 0;
 
-        glm::fvec4 mClearColour;
+        Vector4<float> mClearColour;
 
         RendererVSync mVSync;
 
@@ -44,8 +44,8 @@ namespace Mosaic
     public:
         Renderer(ApplicationData& applicationData);
 
-        glm::fvec4 GetClearColour() const;
-        void SetClearColour(const glm::fvec4& colour);
+        Vector4<float> GetClearColour() const;
+        void SetClearColour(const Vector4<float>& colour);
 
         RendererAPI GetRendererAPI() const;
 
@@ -62,7 +62,7 @@ namespace Mosaic
 
         void LoadConfig();
 
-        glm::fvec4 mClearColour;
+        Vector4<float> mClearColour;
         RendererAPI mAPI;
         RendererVSync mVSync;
 

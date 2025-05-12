@@ -23,7 +23,7 @@ void Mosaic::OpenGLRenderer::Create()
 
     SDL_GL_SetSwapInterval(mSwapInterval);
 
-    glClearColor(mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.a);
+    glClearColor(mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W);
 
     if (glewInit())
     {
@@ -35,7 +35,7 @@ void Mosaic::OpenGLRenderer::Create()
 
 void Mosaic::OpenGLRenderer::Update()
 {
-    glClearColor(mClearColour.x, mClearColour.y, mClearColour.z, mClearColour.a);
+    glClearColor(mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -48,11 +48,11 @@ void Mosaic::OpenGLRenderer::LoadConfig()
 
     auto version = file.Get<std::uint32_t, 2>("OpenGL.Version");
 
-    mVersion.x = version[0];
-    mVersion.y = version[1];
+    mVersion.X = version[0];
+    mVersion.Y = version[1];
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, mVersion.x);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mVersion.y);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, mVersion.X);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mVersion.Y);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     switch (mVSync)
@@ -80,5 +80,5 @@ void Mosaic::OpenGLRenderer::LoadConfig()
 
 void Mosaic::OpenGLRenderer::OnResize(const WindowResizeEvent& event)
 {
-    glViewport(0, 0, event.Size.x, event.Size.y);
+    glViewport(0, 0, event.Size.X, event.Size.Y);
 }

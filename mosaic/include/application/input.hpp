@@ -1,7 +1,8 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include <glm/glm.hpp>
+
+#include "../utilities/vector.hpp"
 
 #include <unordered_map>
 
@@ -153,8 +154,8 @@ namespace Mosaic
 
     struct CursorMovement
     {
-        glm::fvec2 ScreenSpacePosition;
-        glm::fvec2 DeviceCoordPosition;
+        Vector2<float> ScreenSpacePosition;
+        Vector2<float> DeviceCoordPosition;
     };
 
     struct ButtonState

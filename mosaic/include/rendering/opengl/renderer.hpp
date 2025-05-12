@@ -1,13 +1,11 @@
 #pragma once
 
+#include "../../application/application.hpp"
 #include "../../application/renderer.hpp"
-#include "application/application.hpp"
-#include "application/window.hpp"
+#include "../../application/window.hpp"
 
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_video.h>
-
-#include <glm/glm.hpp>
 
 namespace Mosaic
 {
@@ -27,7 +25,7 @@ namespace Mosaic
 
         SDL_GLContext mContext;
 
-        glm::uvec2 mVersion;
+        Vector2<std::uint32_t> mVersion;
 
         std::uint32_t mSwapInterval;
 
