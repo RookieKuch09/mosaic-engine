@@ -4,6 +4,8 @@
 
 #include "../../include/application/console.hpp"
 
+#include <cstdint>
+
 template <typename T>
 T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key, const T& fallback) const
 {

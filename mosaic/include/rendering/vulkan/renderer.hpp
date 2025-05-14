@@ -9,6 +9,8 @@
 #include "surface.hpp"
 #include "swapchain.hpp"
 
+#include <cstdint>
+
 namespace Mosaic
 {
     struct WindowResizeEvent;

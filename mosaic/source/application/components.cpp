@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <cstdint>
+
 Mosaic::Component::Component()
     : mStarted(false)
 {

@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include <cstdint>
+
 namespace Mosaic
 {
     class VulkanPhysicalDevice;
