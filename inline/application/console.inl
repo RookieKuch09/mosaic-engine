@@ -6,6 +6,15 @@
 #include <iostream>
 
 template <typename... Args>
+void Mosaic::Console::Assert(bool condition, const std::string& message, Args&&... args)
+{
+    if (condition)
+    {
+        Throw(message, std::forward<Args>(args)...);
+    }
+}
+
+template <typename... Args>
 void Mosaic::Console::LogSuccess(const std::string& message, Args&&... args)
 {
     std::string time = GetCurrentTime();

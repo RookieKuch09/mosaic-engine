@@ -2,7 +2,6 @@
 
 #include "utilities/arithmetic.hpp"
 
-#include <limits>
 #include <type_traits>
 
 namespace Mosaic

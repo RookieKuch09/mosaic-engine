@@ -8,6 +8,9 @@ namespace Mosaic
     {
     public:
         template <typename... Args>
+        static void Assert(bool condition, const std::string& message, Args&&... args);
+
+        template <typename... Args>
         static void LogSuccess(const std::string& message, Args&&... args);
 
         template <typename... Args>

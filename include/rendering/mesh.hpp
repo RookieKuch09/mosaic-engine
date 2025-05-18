@@ -23,6 +23,65 @@ namespace Mosaic
             UInt64,
         };
 
+        template <typename T>
+        struct RawTypeMap;
+
+        template <>
+        struct RawTypeMap<float32>
+        {
+            static constexpr RawType value = RawType::Float32;
+        };
+        template <>
+        struct RawTypeMap<float64>
+        {
+            static constexpr RawType value = RawType::Float64;
+        };
+
+        template <>
+        struct RawTypeMap<int8>
+        {
+            static constexpr RawType value = RawType::Int8;
+        };
+        template <>
+        struct RawTypeMap<int16>
+        {
+            static constexpr RawType value = RawType::Int16;
+        };
+        template <>
+        struct RawTypeMap<int32>
+        {
+            static constexpr RawType value = RawType::Int32;
+        };
+        template <>
+        struct RawTypeMap<int64>
+        {
+            static constexpr RawType value = RawType::Int64;
+        };
+
+        template <>
+        struct RawTypeMap<uint8>
+        {
+            static constexpr RawType value = RawType::UInt8;
+        };
+        template <>
+        struct RawTypeMap<uint16>
+        {
+            static constexpr RawType value = RawType::UInt16;
+        };
+        template <>
+        struct RawTypeMap<uint32>
+        {
+            static constexpr RawType value = RawType::UInt32;
+        };
+        template <>
+        struct RawTypeMap<uint64>
+        {
+            static constexpr RawType value = RawType::UInt64;
+        };
+
+        template <typename T>
+        struct RawTypeMap;
+
         RawType Type;
         uint32 AttributeLength;
         uint32 VertexLength;
@@ -38,7 +97,7 @@ namespace Mosaic
     public:
         MeshAttribute();
 
-        using Type = T;
+        using ValueType = T;
 
     private:
         void GetTypeData();
