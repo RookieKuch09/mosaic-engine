@@ -97,15 +97,7 @@ void Mosaic::VulkanDevice::Create(VulkanQueues& queues, VulkanPhysicalDevice& ph
 
     auto extensions = getVectorCStrings(mExtensions);
 
-    vk::DeviceCreateInfo deviceCreateInfo = {
-        {},
-        static_cast<std::uint32_t>(queues.GetQueueCreateInfo().size()),
-        queues.GetQueueCreateInfo().data(),
-        0,
-        nullptr,
-        static_cast<std::uint32_t>(extensions.size()),
-        extensions.data(),
-    };
+    vk::DeviceCreateInfo deviceCreateInfo = {{}, static_cast<uint32>(queues.GetQueueCreateInfo().size()), queues.GetQueueCreateInfo().data(), 0, nullptr, static_cast<uint32>(extensions.size()), extensions.data()};
 
     vk::PhysicalDeviceFeatures2 enabledFeatures{};
     vk::PhysicalDeviceVulkan11Features enabled11{};
@@ -144,7 +136,7 @@ void Mosaic::VulkanDevice::AwaitFences(VulkanSwapchain& swapchain)
 
 std::uint32_t Mosaic::VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain)
 {
-    std::uint32_t imageIndex = 0;
+    uint32 imageIndex = 0;
 
     auto semaphore = swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].ImageAvailable.get();
 

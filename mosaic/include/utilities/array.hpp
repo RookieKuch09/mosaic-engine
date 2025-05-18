@@ -1,12 +1,12 @@
 #pragma once
 
-#include <cstdint>
+#include "arithmetic.hpp"
+
 #include <type_traits>
-#include <cstdint>
 
 namespace Mosaic
 {
-    template <typename T, std::uint64_t Size>
+    template <typename T, uint64 Size>
     class FixedArray
     {
     public:

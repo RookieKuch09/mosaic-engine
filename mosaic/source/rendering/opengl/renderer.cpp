@@ -1,20 +1,19 @@
 #include <GL/glew.h>
 
-#include "../../../include/rendering/opengl/renderer.hpp"
-
-#include "../../../include/utilities/config.hpp"
 #include "application/application.hpp"
-#include "application/renderer.hpp"
-#include "application/window.hpp"
 
-Mosaic::OpenGLRenderer::OpenGLRenderer(ApplicationData* applicationData)
-    : mApplicationData(applicationData)
+#include "rendering/opengl/renderer.hpp"
+
+#include "utilities/config.hpp"
+
+Mosaic::OpenGLRenderer::OpenGLRenderer(Renderer& renderer)
+    : mRenderer(renderer)
 {
 }
 
 void Mosaic::OpenGLRenderer::Create()
 {
-    mContext = SDL_GL_CreateContext(mApplicationData->Window.mHandle);
+    mContext = SDL_GL_CreateContext(mRenderer.mApplicationData.Window.mHandle);
 
     if (not mContext)
     {
@@ -23,30 +22,30 @@ void Mosaic::OpenGLRenderer::Create()
 
     SDL_GL_SetSwapInterval(mSwapInterval);
 
-    glClearColor(mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W);
+    glClearColor(mRenderer.mClearColour.X, mRenderer.mClearColour.Y, mRenderer.mClearColour.Z, mRenderer.mClearColour.W);
 
     if (glewInit())
     {
         Console::Throw("Failed to fetch OpenGL extensions: {}", SDL_GetError());
     }
 
-    mApplicationData->EventManager.Subscribe(this, &OpenGLRenderer::OnResize);
+    mRenderer.mApplicationData.EventManager.Subscribe(this, &OpenGLRenderer::OnResize);
 }
 
 void Mosaic::OpenGLRenderer::Update()
 {
-    glClearColor(mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W);
+    glClearColor(mRenderer.mClearColour.X, mRenderer.mClearColour.Y, mRenderer.mClearColour.Z, mRenderer.mClearColour.W);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    SDL_GL_SwapWindow(mApplicationData->Window.mHandle);
+    SDL_GL_SwapWindow(mRenderer.mApplicationData.Window.mHandle);
 }
 
 void Mosaic::OpenGLRenderer::LoadConfig()
 {
-    TOMLFile file(mConfigPath);
+    TOMLFile file(mRenderer.mConfigPath);
 
-    auto version = file.Get<std::uint32_t, 2>("OpenGL.Version");
+    auto version = file.Get<uint32, 2>("OpenGL.Version");
 
     mVersion.X = version[0];
     mVersion.Y = version[1];
@@ -55,7 +54,7 @@ void Mosaic::OpenGLRenderer::LoadConfig()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mVersion.Y);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    switch (mVSync)
+    switch (mRenderer.mVSync)
     {
         case (RendererVSync::Disabled):
         {

@@ -5,9 +5,7 @@
 
 void Mosaic::VulkanCommandSystem::Create(VulkanDevice& device, VulkanQueues& queues)
 {
-    vk::CommandPoolCreateInfo poolCreateInfo{
-        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-        queues.GetGraphicsQueueFamily()};
+    vk::CommandPoolCreateInfo poolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queues.GetGraphicsQueueFamily()};
 
     mCommandPool = device.Get().createCommandPoolUnique(poolCreateInfo);
 }
@@ -41,14 +39,9 @@ void Mosaic::VulkanCommandSystem::RecordCommands(VulkanRenderPass& renderPass, V
 
     vk::ClearValue clearColour = vk::ClearColorValue(clear);
 
-    vk::RenderPassBeginInfo renderPassBeginInfo{
-        renderPass.GetRenderPass(),
-        framebuffer.GetFramebuffer(),
-        vk::Rect2D({0, 0}, swapchain.GetExtent()),
-        1, &clearColour};
+    vk::RenderPassBeginInfo renderPassBeginInfo{renderPass.GetRenderPass(), framebuffer.GetFramebuffer(), vk::Rect2D({0, 0}, swapchain.GetExtent()), 1, &clearColour};
 
     commandBuffer->beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
-
     commandBuffer->endRenderPass();
 }
 
@@ -59,11 +52,7 @@ vk::CommandBuffer& Mosaic::VulkanCommandSystem::GetCommandBuffer(std::uint32_t i
 
 void Mosaic::VulkanCommandSystem::SubmitFrame(vk::Queue graphicsQueue, const VulkanFrameSubmitDescriptor& info)
 {
-    vk::SubmitInfo submitInfo{
-        1, &info.WaitSemaphore,
-        &info.WaitStage,
-        1, &info.Command,
-        1, &info.SignalSemaphore};
+    vk::SubmitInfo submitInfo{1, &info.WaitSemaphore, &info.WaitStage, 1, &info.Command, 1, &info.SignalSemaphore};
 
     graphicsQueue.submit(submitInfo, info.InFlightFence);
 }

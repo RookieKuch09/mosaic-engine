@@ -2,8 +2,6 @@
 #include "../../../include/rendering/vulkan/devices.hpp"
 #include "../../../include/rendering/vulkan/surface.hpp"
 
-#include "../../../include/application/console.hpp"
-
 #include <set>
 
 void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface)
@@ -19,8 +17,6 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
         if (not mGraphicsFamily and props.queueFlags & vk::QueueFlagBits::eGraphics)
         {
             mGraphicsFamily = index;
-
-            Console::LogNotice("q0={}", index);
         }
 
         if (not mComputeFamily and props.queueFlags & vk::QueueFlagBits::eCompute)
@@ -28,8 +24,6 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
             if (not(props.queueFlags & vk::QueueFlagBits::eGraphics))
             {
                 mComputeFamily = index;
-
-                Console::LogNotice("q1={}", index);
             }
         }
 
@@ -38,33 +32,22 @@ void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, Vulkan
             if (not(props.queueFlags & vk::QueueFlagBits::eGraphics) and not(props.queueFlags & vk::QueueFlagBits::eCompute))
             {
                 mTransferFamily = index;
-
-                Console::LogNotice("q2={}", index);
             }
         }
 
-        bool alreadyUsed = (mGraphicsFamily and mGraphicsFamily.value() == index) or
-                           (mComputeFamily and mComputeFamily.value() == index) or
-                           (mTransferFamily and mTransferFamily.value() == index);
+        bool alreadyUsed = (mGraphicsFamily and mGraphicsFamily.value() == index) or (mComputeFamily and mComputeFamily.value() == index) or (mTransferFamily and mTransferFamily.value() == index);
 
         auto support = gpu.getSurfaceSupportKHR(index, surface.GetHandle());
 
         if (not alreadyUsed and not mPresentFamily and support)
         {
             mPresentFamily = index;
-
-            Console::LogNotice("q3={}", index);
         }
     }
 
     ResolveFallbacks();
 
-    std::set<std::uint32_t> uniqueFamilies = {
-        mGraphicsFamily.value(),
-        mComputeFamily.value(),
-        mTransferFamily.value(),
-        mPresentFamily.value(),
-    };
+    std::set<std::uint32_t> uniqueFamilies = {mGraphicsFamily.value(), mComputeFamily.value(), mTransferFamily.value(), mPresentFamily.value()};
 
     mQueuePriority = 1.0;
 

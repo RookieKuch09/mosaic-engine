@@ -1,26 +1,25 @@
-#include "../../../include/rendering/vulkan/renderer.hpp"
+#include "rendering/vulkan/renderer.hpp"
 
-#include "../../../include/application/application.hpp"
-#include "../../../include/application/console.hpp"
+#include "application/application.hpp"
 
-Mosaic::VulkanRenderer::VulkanRenderer(ApplicationData* applicationData)
-    : mApplicationData(applicationData), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
+Mosaic::VulkanRenderer::VulkanRenderer(Renderer& renderer)
+    : mRenderer(renderer), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
 {
-    mApplicationData->EventManager.Subscribe(this, &VulkanRenderer::ResizeCallback);
+    mRenderer.mApplicationData.EventManager.Subscribe(this, &VulkanRenderer::ResizeCallback);
 }
 
 void Mosaic::VulkanRenderer::Create()
 {
-    mApplicationData->Window.InitialiseVulkan();
+    mRenderer.mApplicationData.Window.InitialiseVulkan();
 
-    mInstance.SelectWindowExtensions(mApplicationData->Window);
+    mInstance.SelectWindowExtensions(mRenderer.mApplicationData.Window);
     mInstance.SelectExtensions({}, {});
     mInstance.SelectLayers({});
     mInstance.Create();
 
     mPhysicalDevice.Select(mInstance);
 
-    mSurface.Create(mApplicationData->Window, mInstance);
+    mSurface.Create(mRenderer.mApplicationData.Window, mInstance);
     mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
 
     mQueues.Discover(mPhysicalDevice, mSurface);
@@ -50,7 +49,7 @@ void Mosaic::VulkanRenderer::CreateSwapchain()
 
     mSwapchain.Reset();
 
-    mSwapchain.Create(mApplicationData->Window, mDevice, mPhysicalDevice, mSurface, mVSync);
+    mSwapchain.Create(mRenderer.mApplicationData.Window, mDevice, mPhysicalDevice, mSurface, mRenderer.mVSync);
     mSwapchain.CreateSyncObjects(mDevice);
 
     mFramebuffers.resize(mSwapchain.GetImageCount());
@@ -65,11 +64,6 @@ void Mosaic::VulkanRenderer::CreateSwapchain()
 
     mCommandSystem.Create(mDevice, mQueues);
     mCommandSystem.AllocateCommandBuffers(mDevice, mSwapchain);
-
-    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
-    {
-        Console::LogSuccess("Successfully rebuilt swapchain");
-    }
 }
 
 void Mosaic::VulkanRenderer::Update()
@@ -95,7 +89,7 @@ void Mosaic::VulkanRenderer::Update()
     }
 
     mCommandSystem.BeginFrame(imageIndex);
-    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mClearColour.X, mClearColour.Y, mClearColour.Z, mClearColour.W});
+    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mRenderer.mClearColour.X, mRenderer.mClearColour.Y, mRenderer.mClearColour.Z, mRenderer.mClearColour.W});
     mCommandSystem.EndFrame(imageIndex);
 
     VulkanFrameSubmitDescriptor frameSubmitDescriptor = {

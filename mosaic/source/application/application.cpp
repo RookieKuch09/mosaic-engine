@@ -33,8 +33,8 @@ std::int32_t Mosaic::Application::Run()
 {
     try
     {
-        Data.Window.LoadConfig();
         Data.Renderer.LoadConfig();
+        Data.Window.LoadConfig();
 
         Data.Window.Create();
         Data.Renderer.Create();

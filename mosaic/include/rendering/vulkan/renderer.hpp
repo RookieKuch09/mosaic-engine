@@ -1,15 +1,15 @@
 #pragma once
 
-#include "../../application/renderer.hpp"
+#include "application/renderer.hpp"
 
-#include "commands.hpp"
-#include "devices.hpp"
-#include "instance.hpp"
-#include "queues.hpp"
-#include "surface.hpp"
-#include "swapchain.hpp"
+#include "rendering/vulkan/commands.hpp"
+#include "rendering/vulkan/devices.hpp"
+#include "rendering/vulkan/instance.hpp"
+#include "rendering/vulkan/queues.hpp"
+#include "rendering/vulkan/surface.hpp"
+#include "rendering/vulkan/swapchain.hpp"
 
-#include <cstdint>
+#include "utilities/arithmetic.hpp"
 
 namespace Mosaic
 {
@@ -18,20 +18,18 @@ namespace Mosaic
     class VulkanRenderer : public RendererInterface
     {
     public:
-        VulkanRenderer(ApplicationData* applicationData);
+        VulkanRenderer(Renderer& renderer);
 
     private:
         void Create() override;
-        void CreateSwapchain();
-
         void Update() override;
-
         void LoadConfig() override;
+
+        void CreateSwapchain();
 
         void ResizeCallback(const WindowResizeEvent& event);
 
-        Vector2<std::uint32_t> mWindowSize;
-
+        Vector2<uint32> mWindowSize;
         VulkanInstance mInstance;
         VulkanPhysicalDevice mPhysicalDevice;
         VulkanDevice mDevice;
@@ -40,10 +38,9 @@ namespace Mosaic
         VulkanSwapchain mSwapchain;
         VulkanRenderPass mRenderPass;
         VulkanCommandSystem mCommandSystem;
+        Renderer& mRenderer;
 
         std::vector<VulkanFramebuffer> mFramebuffers;
-
-        ApplicationData* mApplicationData;
 
         bool mRebuildSwapchainSuboptimal;
         bool mRebuildSwapchainOutOfDate;

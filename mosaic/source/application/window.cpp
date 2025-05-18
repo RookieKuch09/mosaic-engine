@@ -23,11 +23,6 @@ Mosaic::Vector2<std::uint32_t> Mosaic::Window::GetSize() const
     return mSize;
 }
 
-Mosaic::Vector2<std::uint32_t> Mosaic::Window::GetPosition() const
-{
-    return mPosition;
-}
-
 std::string Mosaic::Window::GetTitle() const
 {
     return mTitle;
@@ -38,13 +33,6 @@ void Mosaic::Window::SetSize(const Vector2<std::uint32_t>& size)
     mSize = size;
 
     SDL_SetWindowSize(mHandle, mSize.X, mSize.X);
-}
-
-void Mosaic::Window::SetPosition(const Vector2<std::uint32_t>& position)
-{
-    mPosition = position;
-
-    SDL_SetWindowPosition(mHandle, mPosition.X, mPosition.X);
 }
 
 void Mosaic::Window::SetTitle(const std::string& title)

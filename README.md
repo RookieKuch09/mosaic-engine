@@ -13,8 +13,8 @@
 
 ## Requirements
 
-- Any C++23 compatible compiler (Tested with [Clang++](https://clang.llvm.org) and [GCC](https://gcc.gnu.org))
-- [CMake](https://cmake.org/) (Tested with CMake 4.0+, most versions will work)
+- Any C++23 compatible compiler
+- [CMake](https://cmake.org/)
 - A system with OpenGL or Vulkan support
 
 ## Roadmap
@@ -31,7 +31,7 @@ Mosaic Engine makes use of the following open-source libraries:
 - **[WindowKit](https://github.com/RookieKuch09/WindowKit)**: Developed in-house for Mosaic (MIT License)
 - **SDL3** — windowing and input, though this will be replaced with WindowKit
 - **GLM** — math library, currently being replaced
-- **GLEW** — OpenGL Extension Wrangler, plans to replace
+- **GLEW** — OpenGL Extension Wrangler
 
 Thanks to the authors and contributors of these projects!
 

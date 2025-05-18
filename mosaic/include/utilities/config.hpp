@@ -1,5 +1,7 @@
 #pragma once
 
+#include "arithmetic.hpp"
+
 #include <optional>
 
 #include <toml++/toml.hpp>
@@ -44,7 +46,7 @@ namespace Mosaic
     private:
         static std::vector<std::string> SplitKey(const std::string& key);
 
-        template <typename T, std::size_t N>
+        template <typename T, uint64 N>
         static std::optional<std::array<T, N>> ExtractArray(const toml::node* node);
 
         std::string mFilename;

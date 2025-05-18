@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utilities/arithmetic.hpp"
 #include "../utilities/vector.hpp"
 
 #include <string>
@@ -24,17 +25,9 @@ namespace Mosaic
     class RendererInterface
     {
     protected:
-        virtual void Create() = 0;
-
-        virtual void Update() = 0;
-
         virtual void LoadConfig() = 0;
-
-        Vector4<float> mClearColour;
-
-        RendererVSync mVSync;
-
-        std::string mConfigPath;
+        virtual void Create() = 0;
+        virtual void Update() = 0;
 
         friend class Renderer;
     };
@@ -44,32 +37,28 @@ namespace Mosaic
     public:
         Renderer(ApplicationData& applicationData);
 
-        Vector4<float> GetClearColour() const;
-        void SetClearColour(const Vector4<float>& colour);
-
+        Vector4<float32> GetClearColour() const;
         RendererAPI GetRendererAPI() const;
-
         std::string GetConfigPath() const;
+
+        void SetClearColour(const Vector4<float32>& colour);
         void SetConfigPath(const std::string& path);
 
-    private:
+    protected:
+        void LoadConfig();
         void Create();
-
         void Update();
 
-        RendererInterface* mRendererInstance;
-        ApplicationData* mApplicationData;
-
-        void LoadConfig();
-
-        Vector4<float> mClearColour;
+        ApplicationData& mApplicationData;
+        Vector4<float32> mClearColour;
         RendererAPI mAPI;
         RendererVSync mVSync;
+        RendererInterface* mBackend;
 
         std::string mConfigPath;
 
         friend class Application;
-        friend class VulkanRenderer;
         friend class OpenGLRenderer;
+        friend class VulkanRenderer;
     };
 }

@@ -4,9 +4,9 @@
 
 #include "../utilities/vector.hpp"
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
-#include <cstdint>
 
 namespace vk
 {
@@ -37,9 +37,6 @@ namespace Mosaic
         Vector2<std::uint32_t> GetSize() const;
         void SetSize(const Vector2<std::uint32_t>& size);
 
-        Vector2<std::uint32_t> GetPosition() const;
-        void SetPosition(const Vector2<std::uint32_t>& position);
-
         std::string GetTitle() const;
         void SetTitle(const std::string& title);
 
@@ -63,8 +60,8 @@ namespace Mosaic
         void LoadConfig();
 
         void InitialiseVulkan();
-        std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
         void GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const;
+        std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
 
         Vector2<std::uint32_t> mSize;
         Vector2<std::uint32_t> mPosition;
@@ -77,6 +74,10 @@ namespace Mosaic
         bool mResizable;
 
         SDL_Window* mHandle;
+
+        float mDisplayScale;
+
+        Vector2<std::uint32_t> mDisplayPhysicalResolution;
 
         ApplicationData* mApplicationData;
 
