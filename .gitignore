@@ -2,9 +2,11 @@
 /*
 
 # Whitelist the engine folders
-!/mosaic
+!/source
+!/include
+!/interface
+!/inline
 !/cmake
-!/dependencies
 
 # Whitelist the build and distribution files
 !/CMakeLists.txt

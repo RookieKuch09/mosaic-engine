@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Locate all sources
-file(GLOB_RECURSE SOURCES "mosaic/source/**/*.cpp")
+file(GLOB_RECURSE SOURCES "source/**/*.cpp")
 
 # Create the library
 add_library(Mosaic)
@@ -20,8 +20,6 @@ target_sources(Mosaic PRIVATE ${SOURCES})
 
 # Handle Apple stuff
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -isystem /opt/homebrew/opt/llvm/include/c++/v1")
-
     find_library(MVK_LIB MoltenVK)
     target_link_libraries(Mosaic PRIVATE ${MVK_LIB})
 else()
@@ -52,8 +50,8 @@ include(CMakePackageConfigHelpers)
 # Set the public include directory
 target_include_directories(Mosaic
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mosaic/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mosaic/inline>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inline>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline>
 )
@@ -67,11 +65,11 @@ install(TARGETS Mosaic
 )
 
 # Install headers and inline files
-install(DIRECTORY mosaic/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include)
-install(DIRECTORY mosaic/inline/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/include)
+install(DIRECTORY inline/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic/inline)
 
 # Install primary interface files
-install(DIRECTORY mosaic/interface/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic)
+install(DIRECTORY interface/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Mosaic)
 
 # Export the CMake config for consumers
 install(EXPORT MosaicTargets
