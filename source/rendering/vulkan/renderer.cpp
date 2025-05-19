@@ -1,123 +1,126 @@
 #include "rendering/vulkan/renderer.hpp"
 
-#include "application/application.hpp"
+#include "application/window.hpp"
 
-Mosaic::VulkanRenderer::VulkanRenderer(Renderer& renderer)
-    : mRenderer(renderer), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
+namespace Mosaic::Internal::Rendering
 {
-    mRenderer.mApplicationData.EventManager.Subscribe(this, &VulkanRenderer::ResizeCallback);
-}
-
-void Mosaic::VulkanRenderer::Create()
-{
-    mRenderer.mApplicationData.Window.InitialiseVulkan();
-
-    mInstance.SelectWindowExtensions(mRenderer.mApplicationData.Window);
-    mInstance.SelectExtensions({}, {});
-    mInstance.SelectLayers({});
-    mInstance.Create();
-
-    mPhysicalDevice.Select(mInstance);
-
-    mSurface.Create(mRenderer.mApplicationData.Window, mInstance);
-    mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
-
-    mQueues.Discover(mPhysicalDevice, mSurface);
-
-    mDevice.GetExtensions(mPhysicalDevice, {}, {});
-    mDevice.Create(mQueues, mPhysicalDevice);
-
-    mRenderPass.Create(mDevice, mSurface);
-
-    mQueues.Load(mDevice);
-
-    CreateSwapchain();
-}
-
-void Mosaic::VulkanRenderer::CreateSwapchain()
-{
-    mDevice.WaitIdle();
-
-    mCommandSystem.Reset();
-
-    for (auto& framebuffer : mFramebuffers)
+    VulkanRenderer::VulkanRenderer(Renderer& renderer)
+        : mRenderer(renderer), mRebuildSwapchainSuboptimal(false), mRebuildSwapchainOutOfDate(false)
     {
-        framebuffer.Reset();
+        mRenderer.mEventManager.Subscribe(this, &VulkanRenderer::ResizeCallback);
     }
 
-    mFramebuffers.clear();
-
-    mSwapchain.Reset();
-
-    mSwapchain.Create(mRenderer.mApplicationData.Window, mDevice, mPhysicalDevice, mSurface, mRenderer.mVSync);
-    mSwapchain.CreateSyncObjects(mDevice);
-
-    mFramebuffers.resize(mSwapchain.GetImageCount());
-
-    for (std::uint32_t index = 0; index < mSwapchain.GetImageCount(); index++)
+    void VulkanRenderer::Create()
     {
-        auto& framebuffer = mFramebuffers[index];
+        mRenderer.mWindow.InitialiseVulkan();
 
-        framebuffer.GetIndex() = index;
-        framebuffer.Create(mDevice, mSurface, mRenderPass, mSwapchain);
-    }
+        mInstance.SelectWindowExtensions(mRenderer.mWindow);
+        mInstance.SelectExtensions({}, {});
+        mInstance.SelectLayers({});
+        mInstance.Create();
 
-    mCommandSystem.Create(mDevice, mQueues);
-    mCommandSystem.AllocateCommandBuffers(mDevice, mSwapchain);
-}
+        mPhysicalDevice.Select(mInstance);
 
-void Mosaic::VulkanRenderer::Update()
-{
-    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
-    {
+        mSurface.Create(mRenderer.mWindow, mInstance);
+        mSurface.SelectFormat(mPhysicalDevice, vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear);
+
+        mQueues.Discover(mPhysicalDevice, mSurface);
+
+        mDevice.GetExtensions(mPhysicalDevice, {}, {});
+        mDevice.Create(mQueues, mPhysicalDevice);
+
+        mRenderPass.Create(mDevice, mSurface);
+
+        mQueues.Load(mDevice);
+
         CreateSwapchain();
-
-        mRebuildSwapchainSuboptimal = false;
-        mRebuildSwapchainOutOfDate = false;
     }
 
-    auto current = mSwapchain.GetCurrentFrame();
-    auto& frameSync = mSwapchain.GetSyncFrames()[current];
-
-    mDevice.AwaitFences(mSwapchain);
-
-    std::uint32_t imageIndex = mDevice.GetNextImageIndex(*this, mSwapchain);
-
-    if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+    void VulkanRenderer::CreateSwapchain()
     {
-        return;
+        mDevice.WaitIdle();
+
+        mCommandSystem.Reset();
+
+        for (auto& framebuffer : mFramebuffers)
+        {
+            framebuffer.Reset();
+        }
+
+        mFramebuffers.clear();
+
+        mSwapchain.Reset();
+
+        mSwapchain.Create(mWindowSize, mDevice, mPhysicalDevice, mSurface, mRenderer.mVSync);
+        mSwapchain.CreateSyncObjects(mDevice);
+
+        mFramebuffers.resize(mSwapchain.GetImageCount());
+
+        for (Types::UInt32 index = 0; index < mSwapchain.GetImageCount(); index++)
+        {
+            auto& framebuffer = mFramebuffers[index];
+
+            framebuffer.GetIndex() = index;
+            framebuffer.Create(mDevice, mSurface, mRenderPass, mSwapchain);
+        }
+
+        mCommandSystem.Create(mDevice, mQueues);
+        mCommandSystem.AllocateCommandBuffers(mDevice, mSwapchain);
     }
 
-    mCommandSystem.BeginFrame(imageIndex);
-    mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mRenderer.mClearColour.X, mRenderer.mClearColour.Y, mRenderer.mClearColour.Z, mRenderer.mClearColour.W});
-    mCommandSystem.EndFrame(imageIndex);
-
-    VulkanFrameSubmitDescriptor frameSubmitDescriptor = {
-        mCommandSystem.GetCommandBuffer(imageIndex),
-        frameSync.ImageAvailable.get(),
-        frameSync.RenderFinished.get(),
-        frameSync.InFlight.get(),
-        vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-    mCommandSystem.SubmitFrame(mQueues.GetGraphicsQueue(), frameSubmitDescriptor);
-
-    mSwapchain.PresentFrame(*this, mQueues, imageIndex);
-
-    if (mRebuildSwapchainOutOfDate)
+    void VulkanRenderer::Update()
     {
-        return;
+        if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+        {
+            CreateSwapchain();
+
+            mRebuildSwapchainSuboptimal = false;
+            mRebuildSwapchainOutOfDate = false;
+        }
+
+        auto current = mSwapchain.GetCurrentFrame();
+        auto& frameSync = mSwapchain.GetSyncFrames()[current];
+
+        mDevice.AwaitFences(mSwapchain);
+
+        Types::UInt32 imageIndex = mDevice.GetNextImageIndex(*this, mSwapchain);
+
+        if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
+        {
+            return;
+        }
+
+        mCommandSystem.BeginFrame(imageIndex);
+        mCommandSystem.RecordCommands(mRenderPass, mFramebuffers[imageIndex], mSwapchain, imageIndex, {mRenderer.mClearColour.X, mRenderer.mClearColour.Y, mRenderer.mClearColour.Z, mRenderer.mClearColour.W});
+        mCommandSystem.EndFrame(imageIndex);
+
+        VulkanFrameSubmitDescriptor frameSubmitDescriptor = {
+            mCommandSystem.GetCommandBuffer(imageIndex),
+            frameSync.ImageAvailable.get(),
+            frameSync.RenderFinished.get(),
+            frameSync.InFlight.get(),
+            vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+        mCommandSystem.SubmitFrame(mQueues.GetGraphicsQueue(), frameSubmitDescriptor);
+
+        mSwapchain.PresentFrame(*this, mQueues, imageIndex);
+
+        if (mRebuildSwapchainOutOfDate)
+        {
+            return;
+        }
+
+        mSwapchain.IncrementFrame();
     }
 
-    mSwapchain.IncrementFrame();
-}
+    void VulkanRenderer::LoadConfig()
+    {
+    }
 
-void Mosaic::VulkanRenderer::LoadConfig()
-{
-}
+    void VulkanRenderer::ResizeCallback(const Windowing::WindowResizeEvent& event)
+    {
+        mWindowSize = event.Size;
 
-void Mosaic::VulkanRenderer::ResizeCallback(const WindowResizeEvent& event)
-{
-    mWindowSize = event.Size;
-
-    mRebuildSwapchainOutOfDate = true;
+        mRebuildSwapchainOutOfDate = true;
+    }
 }

@@ -1,14 +1,23 @@
 #pragma once
 
-#include "utilities/arithmetic.hpp"
+#include "utilities/numerics.hpp"
 #include "utilities/vector.hpp"
 
 #include <string>
 
-namespace Mosaic
+namespace Mosaic::Internal
 {
-    struct ApplicationData;
+    class Application;
+    class EventManager;
+}
 
+namespace Mosaic::Internal::Windowing
+{
+    class Window;
+}
+
+namespace Mosaic::Internal::Rendering
+{
     enum class RendererVSync
     {
         Disabled,
@@ -35,13 +44,8 @@ namespace Mosaic
     class Renderer
     {
     public:
-        Renderer(ApplicationData& applicationData);
+        Renderer(Windowing::Window& window, EventManager& eventManager);
 
-        Vector4<float32> GetClearColour() const;
-        RendererAPI GetRendererAPI() const;
-        std::string GetConfigPath() const;
-
-        void SetClearColour(const Vector4<float32>& colour);
         void SetConfigPath(const std::string& path);
 
     protected:
@@ -49,15 +53,19 @@ namespace Mosaic
         void Create();
         void Update();
 
-        ApplicationData& mApplicationData;
-        Vector4<float32> mClearColour;
+        Types::Vector4<Types::Float32> mClearColour;
+
         RendererAPI mAPI;
         RendererVSync mVSync;
         RendererInterface* mBackend;
 
         std::string mConfigPath;
 
-        friend class Application;
+        Windowing::Window& mWindow;
+        EventManager& mEventManager;
+
+        friend class Mosaic::Internal::Application;
+        friend class Mosaic::Internal::Windowing::Window;
         friend class OpenGLRenderer;
         friend class VulkanRenderer;
     };

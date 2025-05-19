@@ -2,11 +2,9 @@
 
 #include "application.hpp"
 
-std::int32_t main()
+Mosaic::Internal::Types::Int32 main()
 {
-    Mosaic::Application* application = Mosaic::CreateApplication();
+    Mosaic::Internal::Application application;
 
-    application->Setup();
-
-    return application->Run();
+    return application.Run();
 }

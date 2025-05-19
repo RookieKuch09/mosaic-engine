@@ -1,10 +1,10 @@
 #pragma once
 
+#include "utilities/numerics.hpp"
+
 #include <vulkan/vulkan.hpp>
 
-#include <cstdint>
-
-namespace Mosaic
+namespace Mosaic::Internal::Rendering
 {
     class VulkanPhysicalDevice;
     class VulkanDevice;
@@ -22,10 +22,10 @@ namespace Mosaic
         vk::Queue GetTransferQueue() const;
         vk::Queue GetPresentQueue() const;
 
-        std::uint32_t GetGraphicsQueueFamily() const;
-        std::uint32_t GetComputeQueueFamily() const;
-        std::uint32_t GetTransferQueueFamily() const;
-        std::uint32_t GetPresentQueueFamily() const;
+        Types::UInt32 GetGraphicsQueueFamily() const;
+        Types::UInt32 GetComputeQueueFamily() const;
+        Types::UInt32 GetTransferQueueFamily() const;
+        Types::UInt32 GetPresentQueueFamily() const;
 
         std::vector<vk::DeviceQueueCreateInfo>& GetQueueCreateInfo();
 
@@ -37,12 +37,12 @@ namespace Mosaic
         vk::Queue mTransferQueue;
         vk::Queue mPresentQueue;
 
-        std::optional<std::uint32_t> mGraphicsFamily;
-        std::optional<std::uint32_t> mComputeFamily;
-        std::optional<std::uint32_t> mTransferFamily;
-        std::optional<std::uint32_t> mPresentFamily;
+        std::optional<Types::UInt32> mGraphicsFamily;
+        std::optional<Types::UInt32> mComputeFamily;
+        std::optional<Types::UInt32> mTransferFamily;
+        std::optional<Types::UInt32> mPresentFamily;
 
-        float mQueuePriority;
+        Types::Float32 mQueuePriority;
 
         std::vector<vk::DeviceQueueCreateInfo> mQueueCreateInfos;
     };

@@ -2,9 +2,10 @@
 
 #include <SDL3/SDL.h>
 
+#include "application/events.hpp"
+#include "utilities/numerics.hpp"
 #include "utilities/vector.hpp"
 
-#include <cstdint>
 #include <string>
 #include <unordered_set>
 
@@ -14,37 +15,42 @@ namespace vk
     struct Instance;
 }
 
-namespace Mosaic
+namespace Mosaic::Internal
+{
+    class Application;
+    class EventManager;
+}
+
+namespace Mosaic::Internal::Rendering
+{
+    class Renderer;
+    class VulkanRenderer;
+    class VulkanSurface;
+    class VulkanInstance;
+    class OpenGLRenderer;
+}
+
+namespace Mosaic::Internal::Windowing
 {
     struct ApplicationData;
 
     struct WindowMoveEvent
     {
-        Vector2<std::uint32_t> Position;
+        Types::Vector2<Types::UInt32> Position;
     };
 
     struct WindowResizeEvent
     {
-        Vector2<std::uint32_t> Size;
+        Types::Vector2<Types::UInt32> Size;
     };
 
     class Window
     {
     public:
-        Window(ApplicationData& applicationData);
+        Window(Rendering::Renderer& renderer, EventManager& eventManager);
         ~Window();
 
-        Vector2<std::uint32_t> GetSize() const;
-        void SetSize(const Vector2<std::uint32_t>& size);
-
-        std::string GetTitle() const;
-        void SetTitle(const std::string& title);
-
-        std::string GetConfigPath() const;
         void SetConfigPath(const std::string& path);
-
-        bool GetFullscreenState() const;
-        void SetFullscreenState(bool fullscreen);
 
     private:
         void Create();
@@ -63,8 +69,8 @@ namespace Mosaic
         void GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const;
         std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
 
-        Vector2<std::uint32_t> mSize;
-        Vector2<std::uint32_t> mPosition;
+        Types::Vector2<Types::UInt32> mSize;
+        Types::Vector2<Types::UInt32> mPosition;
 
         std::string mTitle;
         std::string mConfigPath;
@@ -75,16 +81,13 @@ namespace Mosaic
 
         SDL_Window* mHandle;
 
-        float mDisplayScale;
+        Rendering::Renderer& mRenderer;
+        EventManager& mEventManager;
 
-        Vector2<std::uint32_t> mDisplayPhysicalResolution;
-
-        ApplicationData* mApplicationData;
-
-        friend class Application;
-        friend class VulkanRenderer;
-        friend class VulkanSurface;
-        friend class VulkanInstance;
-        friend class OpenGLRenderer;
+        friend class Mosaic::Internal::Application;
+        friend class Mosaic::Internal::Rendering::VulkanRenderer;
+        friend class Mosaic::Internal::Rendering::VulkanSurface;
+        friend class Mosaic::Internal::Rendering::VulkanInstance;
+        friend class Mosaic::Internal::Rendering::OpenGLRenderer;
     };
 }

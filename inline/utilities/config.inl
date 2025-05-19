@@ -4,192 +4,193 @@
 
 #include "application/console.hpp"
 
-#include <cstdint>
-
-template <typename T>
-T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key, const T& fallback) const
+namespace Mosaic::Internal::Files
 {
-    auto keys = SplitKey(key);
-
-    const toml::node* node = &mData;
-
-    for (const auto& key : keys)
+    template <typename T>
+    T ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key, const T& fallback) const
     {
-        if (auto table = node->as_table())
-        {
-            node = table->get(key);
+        auto keys = SplitKey(key);
 
-            if (not node)
+        const toml::node* node = &mData;
+
+        for (const auto& key : keys)
+        {
+            if (auto table = node->as_table())
             {
-                return fallback;
-            }
-        }
-        else
-        {
-            return fallback;
-        }
-    }
+                node = table->get(key);
 
-    if (node)
-    {
-        if (auto value = node->value<T>())
-        {
-            return *value;
-        }
-    }
-
-    return fallback;
-}
-
-template <typename T, std::size_t N>
-std::array<T, N> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key) const
-{
-    auto keys = SplitKey(key);
-
-    const toml::node* node = &mData;
-
-    for (const auto& key : keys)
-    {
-        if (auto table = node->as_table())
-        {
-            node = table->get(key);
-
-            if (not node)
-            {
-                Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
-            }
-        }
-        else
-        {
-            Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
-        }
-    }
-
-    if (auto result = ExtractArray<T, N>(node))
-    {
-        return *result;
-    }
-
-    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
-
-    throw;
-}
-
-template <typename T, std::size_t N>
-std::array<T, N> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key, const std::array<T, N>& fallback) const
-{
-    auto keys = SplitKey(key);
-
-    const toml::node* node = &mData;
-
-    for (const auto& key : keys)
-    {
-        if (auto table = node->as_table())
-        {
-            node = table->get(key);
-
-            if (not node)
-            {
-                return fallback;
-            }
-        }
-        else
-        {
-            return fallback;
-        }
-    }
-
-    if (auto result = ExtractArray<T, N>(node))
-    {
-        return *result;
-    }
-
-    return fallback;
-}
-
-template <typename T, std::size_t N>
-std::optional<std::array<T, N>> Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::ExtractArray(const toml::node* node)
-{
-    if (const auto* arr = node ? node->as_array() : nullptr)
-    {
-        if (arr->size() != N)
-        {
-            return std::nullopt;
-        }
-
-        std::array<T, N> result;
-
-        for (std::uint32_t index = 0; index < N; index++)
-        {
-            if (auto val = (*arr)[index].value<T>())
-            {
-                result[index] = *val;
+                if (not node)
+                {
+                    return fallback;
+                }
             }
             else
             {
-                return std::nullopt;
+                return fallback;
             }
         }
 
-        return result;
+        if (node)
+        {
+            if (auto value = node->value<T>())
+            {
+                return *value;
+            }
+        }
+
+        return fallback;
     }
 
-    return std::nullopt;
-}
-
-template <typename T>
-T Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Get(const std::string& key) const
-{
-    auto keys = SplitKey(key);
-
-    const toml::node* node = &mData;
-
-    for (const auto& key : keys)
+    template <typename T, Types::UInt32 N>
+    std::array<T, N> ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key) const
     {
-        if (auto table = node->as_table())
-        {
-            node = table->get(key);
+        auto keys = SplitKey(key);
 
-            if (not node)
+        const toml::node* node = &mData;
+
+        for (const auto& key : keys)
+        {
+            if (auto table = node->as_table())
+            {
+                node = table->get(key);
+
+                if (not node)
+                {
+                    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+                }
+            }
+            else
             {
                 Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
             }
         }
-        else
+
+        if (auto result = ExtractArray<T, N>(node))
         {
-            Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+            return *result;
         }
+
+        Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+
+        throw;
     }
 
-    if (node)
+    template <typename T, Types::UInt32 N>
+    std::array<T, N> ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key, const std::array<T, N>& fallback) const
     {
-        if (auto value = node->value<T>())
+        auto keys = SplitKey(key);
+
+        const toml::node* node = &mData;
+
+        for (const auto& key : keys)
         {
-            return *value;
+            if (auto table = node->as_table())
+            {
+                node = table->get(key);
+
+                if (not node)
+                {
+                    return fallback;
+                }
+            }
+            else
+            {
+                return fallback;
+            }
         }
+
+        if (auto result = ExtractArray<T, N>(node))
+        {
+            return *result;
+        }
+
+        return fallback;
     }
 
-    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
-
-    throw;
-}
-
-template <typename T>
-void Mosaic::ConfigFile<Mosaic::ConfigFiletype::TOML>::Set(const std::string& key, const T& value)
-{
-    auto keys = SplitKey(key);
-
-    toml::table* table = &mData;
-
-    for (std::uint32_t index = 0; index < keys.size() - 1; index++)
+    template <typename T, Types::UInt32 N>
+    std::optional<std::array<T, N>> ConfigFile<ConfigFiletype::TOML>::ExtractArray(const toml::node* node)
     {
-        if (not table->contains(keys[index]) or not(*table)[keys[index]].is_table())
+        if (const auto* arr = node ? node->as_array() : nullptr)
         {
-            table->insert_or_assign(keys[index], toml::table{});
+            if (arr->size() != N)
+            {
+                return std::nullopt;
+            }
+
+            std::array<T, N> result;
+
+            for (Types::UInt32 index = 0; index < N; index++)
+            {
+                if (auto val = (*arr)[index].value<T>())
+                {
+                    result[index] = *val;
+                }
+                else
+                {
+                    return std::nullopt;
+                }
+            }
+
+            return result;
         }
 
-        table = (*table)[keys[index]].as_table();
+        return std::nullopt;
     }
 
-    table->insert_or_assign(keys.back(), value);
+    template <typename T>
+    T ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key) const
+    {
+        auto keys = SplitKey(key);
+
+        const toml::node* node = &mData;
+
+        for (const auto& key : keys)
+        {
+            if (auto table = node->as_table())
+            {
+                node = table->get(key);
+
+                if (not node)
+                {
+                    Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+                }
+            }
+            else
+            {
+                Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+            }
+        }
+
+        if (node)
+        {
+            if (auto value = node->value<T>())
+            {
+                return *value;
+            }
+        }
+
+        Console::Throw("Key \"{}\" does not exist in file \"{}\"", key, mFilename);
+
+        throw;
+    }
+
+    template <typename T>
+    void ConfigFile<ConfigFiletype::TOML>::Set(const std::string& key, const T& value)
+    {
+        auto keys = SplitKey(key);
+
+        toml::table* table = &mData;
+
+        for (Types::UInt32 index = 0; index < keys.size() - 1; index++)
+        {
+            if (not table->contains(keys[index]) or not(*table)[keys[index]].is_table())
+            {
+                table->insert_or_assign(keys[index], toml::table{});
+            }
+
+            table = (*table)[keys[index]].as_table();
+        }
+
+        table->insert_or_assign(keys.back(), value);
+    }
 }

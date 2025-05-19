@@ -2,18 +2,22 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace Mosaic
+namespace Mosaic::Internal::Windowing
+{
+    class Window;
+}
+
+namespace Mosaic::Internal::Rendering
 {
     class VulkanInstance;
     class VulkanPhysicalDevice;
-    class Window;
 
     class VulkanSurface
     {
     public:
         void SelectFormat(VulkanPhysicalDevice& physicalDevice, vk::Format format, vk::ColorSpaceKHR space);
 
-        void Create(Window& window, VulkanInstance& instance);
+        void Create(Windowing::Window& window, VulkanInstance& instance);
 
         vk::SurfaceKHR& GetHandle();
         vk::SurfaceFormatKHR& GetFormat();

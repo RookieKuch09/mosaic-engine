@@ -1,12 +1,12 @@
 #pragma once
 
-#include "arithmetic.hpp"
+#include "utilities/numerics.hpp"
 
 #include <optional>
 
 #include <toml++/toml.hpp>
 
-namespace Mosaic
+namespace Mosaic::Internal::Files
 {
     enum class ConfigFiletype
     {
@@ -31,10 +31,10 @@ namespace Mosaic
         template <typename T>
         T Get(const std::string& key, const T& fallback) const;
 
-        template <typename T, std::size_t N>
+        template <typename T, Types::UInt32 N>
         std::array<T, N> Get(const std::string& key, const std::array<T, N>& fallback) const;
 
-        template <typename T, std::size_t N>
+        template <typename T, Types::UInt32 N>
         std::array<T, N> Get(const std::string& key) const;
 
         template <typename T>
@@ -46,7 +46,7 @@ namespace Mosaic
     private:
         static std::vector<std::string> SplitKey(const std::string& key);
 
-        template <typename T, uint64 N>
+        template <typename T, Types::UInt32 N>
         static std::optional<std::array<T, N>> ExtractArray(const toml::node* node);
 
         std::string mFilename;

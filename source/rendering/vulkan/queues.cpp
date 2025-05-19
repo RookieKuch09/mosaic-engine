@@ -4,133 +4,136 @@
 
 #include <set>
 
-void Mosaic::VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface)
+namespace Mosaic::Internal::Rendering
 {
-    auto& gpu = physicalDevice.Get();
-
-    const auto families = gpu.getQueueFamilyProperties();
-
-    for (std::uint32_t index = 0; index < families.size(); index++)
+    void VulkanQueues::Discover(VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface)
     {
-        const auto& props = families[index];
+        auto& gpu = physicalDevice.Get();
 
-        if (not mGraphicsFamily and props.queueFlags & vk::QueueFlagBits::eGraphics)
-        {
-            mGraphicsFamily = index;
-        }
+        const auto families = gpu.getQueueFamilyProperties();
 
-        if (not mComputeFamily and props.queueFlags & vk::QueueFlagBits::eCompute)
+        for (Types::UInt32 index = 0; index < families.size(); index++)
         {
-            if (not(props.queueFlags & vk::QueueFlagBits::eGraphics))
+            const auto& props = families[index];
+
+            if (not mGraphicsFamily and props.queueFlags & vk::QueueFlagBits::eGraphics)
             {
-                mComputeFamily = index;
+                mGraphicsFamily = index;
+            }
+
+            if (not mComputeFamily and props.queueFlags & vk::QueueFlagBits::eCompute)
+            {
+                if (not(props.queueFlags & vk::QueueFlagBits::eGraphics))
+                {
+                    mComputeFamily = index;
+                }
+            }
+
+            if (not mTransferFamily and props.queueFlags & vk::QueueFlagBits::eTransfer)
+            {
+                if (not(props.queueFlags & vk::QueueFlagBits::eGraphics) and not(props.queueFlags & vk::QueueFlagBits::eCompute))
+                {
+                    mTransferFamily = index;
+                }
+            }
+
+            bool alreadyUsed = (mGraphicsFamily and mGraphicsFamily.value() == index) or (mComputeFamily and mComputeFamily.value() == index) or (mTransferFamily and mTransferFamily.value() == index);
+
+            auto support = gpu.getSurfaceSupportKHR(index, surface.GetHandle());
+
+            if (not alreadyUsed and not mPresentFamily and support)
+            {
+                mPresentFamily = index;
             }
         }
 
-        if (not mTransferFamily and props.queueFlags & vk::QueueFlagBits::eTransfer)
+        ResolveFallbacks();
+
+        std::set<Types::UInt32> uniqueFamilies = {mGraphicsFamily.value(), mComputeFamily.value(), mTransferFamily.value(), mPresentFamily.value()};
+
+        mQueuePriority = 1.0;
+
+        for (Types::UInt32 family : uniqueFamilies)
         {
-            if (not(props.queueFlags & vk::QueueFlagBits::eGraphics) and not(props.queueFlags & vk::QueueFlagBits::eCompute))
-            {
-                mTransferFamily = index;
-            }
+            vk::DeviceQueueCreateInfo info{};
+            info.queueFamilyIndex = family;
+            info.queueCount = 1;
+            info.pQueuePriorities = &mQueuePriority;
+
+            mQueueCreateInfos.push_back(info);
+        }
+    }
+
+    void VulkanQueues::ResolveFallbacks()
+    {
+        if (not mComputeFamily)
+        {
+            mComputeFamily = mGraphicsFamily;
         }
 
-        bool alreadyUsed = (mGraphicsFamily and mGraphicsFamily.value() == index) or (mComputeFamily and mComputeFamily.value() == index) or (mTransferFamily and mTransferFamily.value() == index);
-
-        auto support = gpu.getSurfaceSupportKHR(index, surface.GetHandle());
-
-        if (not alreadyUsed and not mPresentFamily and support)
+        if (not mTransferFamily)
         {
-            mPresentFamily = index;
+            mTransferFamily = mComputeFamily;
+        }
+
+        if (not mPresentFamily)
+        {
+            mPresentFamily = mGraphicsFamily;
         }
     }
 
-    ResolveFallbacks();
-
-    std::set<std::uint32_t> uniqueFamilies = {mGraphicsFamily.value(), mComputeFamily.value(), mTransferFamily.value(), mPresentFamily.value()};
-
-    mQueuePriority = 1.0;
-
-    for (std::uint32_t family : uniqueFamilies)
+    void VulkanQueues::Load(VulkanDevice& device)
     {
-        vk::DeviceQueueCreateInfo info{};
-        info.queueFamilyIndex = family;
-        info.queueCount = 1;
-        info.pQueuePriorities = &mQueuePriority;
+        auto& logicalDevice = device.Get();
 
-        mQueueCreateInfos.push_back(info);
-    }
-}
-
-void Mosaic::VulkanQueues::ResolveFallbacks()
-{
-    if (not mComputeFamily)
-    {
-        mComputeFamily = mGraphicsFamily;
+        mGraphicsQueue = logicalDevice.getQueue(mGraphicsFamily.value(), 0);
+        mComputeQueue = logicalDevice.getQueue(mComputeFamily.value(), 0);
+        mTransferQueue = logicalDevice.getQueue(mTransferFamily.value(), 0);
+        mPresentQueue = logicalDevice.getQueue(mPresentFamily.value(), 0);
     }
 
-    if (not mTransferFamily)
+    std::vector<vk::DeviceQueueCreateInfo>& VulkanQueues::GetQueueCreateInfo()
     {
-        mTransferFamily = mComputeFamily;
+        return mQueueCreateInfos;
     }
 
-    if (not mPresentFamily)
+    vk::Queue VulkanQueues::GetGraphicsQueue() const
     {
-        mPresentFamily = mGraphicsFamily;
+        return mGraphicsQueue;
     }
-}
 
-void Mosaic::VulkanQueues::Load(VulkanDevice& device)
-{
-    auto& logicalDevice = device.Get();
+    vk::Queue VulkanQueues::GetComputeQueue() const
+    {
+        return mComputeQueue;
+    }
 
-    mGraphicsQueue = logicalDevice.getQueue(mGraphicsFamily.value(), 0);
-    mComputeQueue = logicalDevice.getQueue(mComputeFamily.value(), 0);
-    mTransferQueue = logicalDevice.getQueue(mTransferFamily.value(), 0);
-    mPresentQueue = logicalDevice.getQueue(mPresentFamily.value(), 0);
-}
+    vk::Queue VulkanQueues::GetTransferQueue() const
+    {
+        return mTransferQueue;
+    }
 
-std::vector<vk::DeviceQueueCreateInfo>& Mosaic::VulkanQueues::GetQueueCreateInfo()
-{
-    return mQueueCreateInfos;
-}
+    vk::Queue VulkanQueues::GetPresentQueue() const
+    {
+        return mPresentQueue;
+    }
 
-vk::Queue Mosaic::VulkanQueues::GetGraphicsQueue() const
-{
-    return mGraphicsQueue;
-}
+    Types::UInt32 VulkanQueues::GetGraphicsQueueFamily() const
+    {
+        return mGraphicsFamily.value();
+    }
 
-vk::Queue Mosaic::VulkanQueues::GetComputeQueue() const
-{
-    return mComputeQueue;
-}
+    Types::UInt32 VulkanQueues::GetComputeQueueFamily() const
+    {
+        return mComputeFamily.value_or(mGraphicsFamily.value());
+    }
 
-vk::Queue Mosaic::VulkanQueues::GetTransferQueue() const
-{
-    return mTransferQueue;
-}
+    Types::UInt32 VulkanQueues::GetTransferQueueFamily() const
+    {
+        return mTransferFamily.value_or(mComputeFamily.value_or(mGraphicsFamily.value()));
+    }
 
-vk::Queue Mosaic::VulkanQueues::GetPresentQueue() const
-{
-    return mPresentQueue;
-}
-
-std::uint32_t Mosaic::VulkanQueues::GetGraphicsQueueFamily() const
-{
-    return mGraphicsFamily.value();
-}
-
-std::uint32_t Mosaic::VulkanQueues::GetComputeQueueFamily() const
-{
-    return mComputeFamily.value_or(mGraphicsFamily.value());
-}
-
-std::uint32_t Mosaic::VulkanQueues::GetTransferQueueFamily() const
-{
-    return mTransferFamily.value_or(mComputeFamily.value_or(mGraphicsFamily.value()));
-}
-
-std::uint32_t Mosaic::VulkanQueues::GetPresentQueueFamily() const
-{
-    return mPresentFamily.value_or(mGraphicsFamily.value());
+    Types::UInt32 VulkanQueues::GetPresentQueueFamily() const
+    {
+        return mPresentFamily.value_or(mGraphicsFamily.value());
+    }
 }

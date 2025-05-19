@@ -1,11 +1,17 @@
 #pragma once
 
-#include "application/window.hpp"
 #include "rendering/renderer.hpp"
 
-#include "utilities/arithmetic.hpp"
+#include "utilities/numerics.hpp"
 
-namespace Mosaic
+#include <SDL3/SDL_video.h>
+
+namespace Mosaic::Internal::Windowing
+{
+    struct WindowResizeEvent;
+}
+
+namespace Mosaic::Internal::Rendering
 {
     class OpenGLRenderer : public RendererInterface
     {
@@ -17,12 +23,12 @@ namespace Mosaic
         void Update() override;
         void LoadConfig() override;
 
-        void OnResize(const WindowResizeEvent& event);
+        void OnResize(const Windowing::WindowResizeEvent& event);
 
         SDL_GLContext mContext;
 
-        uint32 mSwapInterval;
-        Vector2<uint32> mVersion;
+        Types::UInt32 mSwapInterval;
+        Types::Vector2<Types::UInt32> mVersion;
         Renderer& mRenderer;
     };
 }

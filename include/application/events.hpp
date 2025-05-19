@@ -7,9 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Mosaic
+namespace Mosaic::Internal
 {
-    struct Listener
+    struct EventListener
     {
         void* Subscriber;
 
@@ -35,7 +35,7 @@ namespace Mosaic
 
     private:
         std::unordered_map<std::type_index, std::queue<std::any>> mEventQueue;
-        std::unordered_map<std::type_index, std::vector<Listener>> mListeners;
+        std::unordered_map<std::type_index, std::vector<EventListener>> mListeners;
 
         void Update();
 

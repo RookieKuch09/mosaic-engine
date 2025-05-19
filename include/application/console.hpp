@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Mosaic
+namespace Mosaic::Internal
 {
     class Console
     {

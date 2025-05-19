@@ -1,10 +1,12 @@
 #pragma once
 
+#include "utilities/numerics.hpp"
+
 #include <vulkan/vulkan.hpp>
 
 #include <unordered_set>
 
-namespace Mosaic
+namespace Mosaic::Internal::Rendering
 {
     class VulkanInstance;
     class VulkanQueues;
@@ -31,7 +33,7 @@ namespace Mosaic
 
         void AwaitFences(VulkanSwapchain& swapchain);
 
-        std::uint32_t GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain);
+        Types::UInt32 GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain);
 
         void WaitIdle();
 

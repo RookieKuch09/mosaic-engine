@@ -2,14 +2,17 @@
 
 #include <vector>
 
-namespace Mosaic
+namespace Mosaic::Internal
 {
     struct ApplicationData;
+
+    class ComponentManager;
+    class EventManager;
 
     class Component
     {
     public:
-        Component();
+        Component(ComponentManager& componentManager, EventManager& eventManager);
         ~Component();
 
     protected:
@@ -17,7 +20,8 @@ namespace Mosaic
         virtual void Update();
         virtual void Stop();
 
-        static ApplicationData* Application;
+        ComponentManager& mComponentManager;
+        EventManager& mEventManager;
 
     private:
         bool mStarted;
@@ -28,21 +32,16 @@ namespace Mosaic
     class ComponentManager
     {
     public:
-        ComponentManager(ApplicationData& applicationData);
+        void RegisterComponent(Component* component);
+        void DeregisterComponent(Component* component);
 
     private:
         void Start();
         void Update();
         void Stop();
 
-        static void RegisterComponent(Component* component);
-        static void DeregisterComponent(Component* component);
+        std::vector<Component*> mComponents;
 
-        static std::vector<Component*> mComponents;
-
-        ApplicationData& mApplicationData;
-
-        friend class Component;
         friend class Application;
     };
 }

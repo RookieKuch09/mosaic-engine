@@ -5,18 +5,17 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace Mosaic
+namespace Mosaic::Internal::Windowing
 {
-    struct ApplicationData;
     class Window;
 }
 
-namespace Mosaic
+namespace Mosaic::Internal::Rendering
 {
     class VulkanInstance
     {
     public:
-        void SelectWindowExtensions(const Window& window);
+        void SelectWindowExtensions(const Windowing::Window& window);
 
         void SelectExtensions(const std::unordered_set<std::string>& whitelist, const std::unordered_set<std::string>& blacklist);
 

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "utilities/numerics.hpp"
+#include "utilities/vector.hpp"
+
 #include <vulkan/vulkan.hpp>
 
-#include <cstdint>
-
-namespace Mosaic
+namespace Mosaic::Internal::Rendering
 {
     class VulkanDevice;
     class VulkanQueues;
@@ -26,15 +27,15 @@ namespace Mosaic
     public:
         void Create(VulkanDevice& device, VulkanQueues& queues);
         void AllocateCommandBuffers(VulkanDevice& device, VulkanSwapchain& swapchain);
-        void BeginFrame(std::uint32_t imageIndex);
-        void EndFrame(std::uint32_t imageIndex);
-        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, std::uint32_t imageIndex, const std::array<float, 4>& clear);
+        void BeginFrame(Types::UInt32 imageIndex);
+        void EndFrame(Types::UInt32 imageIndex);
+        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UInt32 imageIndex, const Types::Vector4<Types::Float32>& clear);
 
         void Reset();
 
         void SubmitFrame(vk::Queue graphicsQueue, const VulkanFrameSubmitDescriptor& info);
 
-        vk::CommandBuffer& GetCommandBuffer(std::uint32_t imageIndex);
+        vk::CommandBuffer& GetCommandBuffer(Types::UInt32 imageIndex);
 
     private:
         vk::UniqueCommandPool mCommandPool;

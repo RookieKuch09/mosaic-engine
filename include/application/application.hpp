@@ -7,7 +7,7 @@
 
 #include "rendering/renderer.hpp"
 
-namespace Mosaic
+namespace Mosaic::Internal
 {
     enum class ApplicationPlatform
     {
@@ -16,33 +16,43 @@ namespace Mosaic
         Linux,
     };
 
-    struct ApplicationData
+    class Instance
     {
-        ApplicationData();
+    public:
+        Instance(ComponentManager& componentManager, EventManager eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
 
-        Window Window;
-        Renderer Renderer;
+    protected:
+        virtual void Setup() = 0;
 
-        ComponentManager ComponentManager;
-        EventManager EventManager;
-        InputManager InputManager;
+        Windowing::Window& mWindow;
+        Rendering::Renderer& mRenderer;
 
-        ApplicationPlatform Platform;
+        EventManager& mEventManager;
+        InputManager& mInputManager;
 
-        bool DebugMode;
+        friend class Application;
     };
 
     class Application
     {
     public:
-        virtual ~Application() = default;
+        Application();
 
-        virtual void Setup();
+        Types::Int32 Run();
 
-        std::int32_t Run();
+        Windowing::Window mWindow;
+        Rendering::Renderer mRenderer;
 
-        ApplicationData Data;
+        ComponentManager mComponentManager;
+        EventManager mEventManager;
+        InputManager mInputManager;
+
+        ApplicationPlatform mPlatform;
+
+        Instance* mInstance;
+
+        bool mDebugMode;
     };
 
-    Application* CreateApplication();
+    Instance* CreateInstance(ComponentManager& componentManager, EventManager eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
 }

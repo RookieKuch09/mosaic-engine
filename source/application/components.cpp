@@ -1,97 +1,95 @@
-#include "application/application.hpp"
+#include "application/components.hpp"
+#include "application/console.hpp"
+
+#include "utilities/numerics.hpp"
 
 #include <algorithm>
 
-#include <cstdint>
-
-Mosaic::Component::Component()
-    : mStarted(false)
+namespace Mosaic::Internal
 {
-    ComponentManager::RegisterComponent(this);
-}
-
-Mosaic::Component::~Component()
-{
-    ComponentManager::DeregisterComponent(this);
-}
-
-void Mosaic::Component::Start()
-{
-}
-
-void Mosaic::Component::Update()
-{
-}
-
-void Mosaic::Component::Stop()
-{
-}
-
-Mosaic::ComponentManager::ComponentManager(ApplicationData& applicationData)
-    : mApplicationData(applicationData)
-{
-    Component::Application = &mApplicationData;
-}
-
-void Mosaic::ComponentManager::Start()
-{
-    for (std::uint32_t index = 0; index < mComponents.size(); index++)
+    Component::Component(ComponentManager& componentManager, EventManager& eventManager)
+        : mStarted(false), mComponentManager(componentManager), mEventManager(eventManager)
     {
-        auto& component = mComponents[index];
-
-        component->Start();
-        component->mStarted = true;
+        mComponentManager.RegisterComponent(this);
     }
-}
 
-void Mosaic::ComponentManager::Update()
-{
-    std::uint32_t index = 0;
-
-    while (index < mComponents.size())
+    Component::~Component()
     {
-        auto& component = mComponents[index];
+        mComponentManager.DeregisterComponent(this);
+    }
 
-        if (not component->mStarted)
+    void Component::Start()
+    {
+    }
+
+    void Component::Update()
+    {
+    }
+
+    void Component::Stop()
+    {
+    }
+
+    void ComponentManager::Start()
+    {
+        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
         {
+            auto& component = mComponents[i];
+
             component->Start();
             component->mStarted = true;
         }
-
-        component->Update();
-
-        index++;
     }
-}
 
-void Mosaic::ComponentManager::Stop()
-{
-    for (std::uint32_t index = 0; index < mComponents.size(); index++)
+    void ComponentManager::Update()
     {
-        mComponents[index]->Stop();
+        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
+        {
+            auto& component = mComponents[i];
+
+            if (not component->mStarted)
+            {
+                component->Start();
+                component->mStarted = true;
+            }
+
+            component->Update();
+        }
     }
-}
 
-void Mosaic::ComponentManager::RegisterComponent(Component* component)
-{
-    auto it = std::find(mComponents.begin(), mComponents.end(), component);
-
-    if (it == mComponents.end())
+    void ComponentManager::Stop()
     {
-        mComponents.push_back(component);
+        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
+        {
+            mComponents[i]->Stop();
+        }
     }
-}
 
-void Mosaic::ComponentManager::DeregisterComponent(Component* component)
-{
-    auto it = std::find(mComponents.begin(), mComponents.end(), component);
-
-    if (it != mComponents.end())
+    void ComponentManager::RegisterComponent(Component* component)
     {
-        mComponents.erase(it);
+        auto it = std::find(mComponents.begin(), mComponents.end(), component);
+
+        if (it == mComponents.end())
+        {
+            mComponents.push_back(component);
+        }
+        else
+        {
+            Console::LogWarning("Component already registered");
+        }
+    }
+
+    void ComponentManager::DeregisterComponent(Component* component)
+    {
+        auto it = std::find(mComponents.begin(), mComponents.end(), component);
+
+        if (it != mComponents.end())
+        {
+            mComponents.erase(it);
+        }
+        else
+        {
+            Console::LogWarning("Component already deregistered");
+        }
     }
 }
-
-Mosaic::ApplicationData* Mosaic::Component::Application;
-
-std::vector<Mosaic::Component*> Mosaic::ComponentManager::mComponents;

@@ -1,104 +1,337 @@
 #include "application/input.hpp"
-#include "application/application.hpp"
+#include "application/events.hpp"
 
-Mosaic::InputManager::InputManager(ApplicationData& applicationData)
-    : mApplicationData(&applicationData)
+namespace Mosaic::Internal
 {
-}
-
-void Mosaic::InputManager::Update()
-{
-    EmitKeyEvents();
-    EmitMouseEvents();
-    EmitCursorEvents();
-}
-
-void Mosaic::InputManager::EmitKeyEvents()
-{
-    const bool* currentKeys = SDL_GetKeyboardState(nullptr);
-
-    for (std::int32_t scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
+    InputManager::InputManager(EventManager& eventManager)
+        : mEventManager(eventManager)
     {
-        Key key = static_cast<Key>(scancode);
-
-        ButtonState& state = mKeyStates[key];
-
-        state.IsDown = currentKeys[scancode];
-
-        if (state.IsDown and not state.WasDownLastFrame)
-        {
-            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Press});
-        }
-        else if (state.IsDown and state.WasDownLastFrame)
-        {
-            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Hold});
-        }
-        else if (state.WasDownLastFrame and not state.IsDown)
-        {
-            mApplicationData->EventManager.Emit<KeyInput>({key, Event::Release});
-        }
-
-        state.WasDownLastFrame = state.IsDown;
+        mEventManager.Subscribe(this, &InputManager::OnWindowResize);
     }
-}
 
-void Mosaic::InputManager::EmitMouseEvents()
-{
-    Uint32 mouseState = SDL_GetMouseState(nullptr, nullptr);
-
-    auto handleButton = [&](MouseButton button, Uint32 sdlButtonMask)
+    void InputManager::Update()
     {
-        bool isDown = mouseState bitand SDL_BUTTON_MASK(sdlButtonMask);
+        EmitKeyEvents();
+        EmitMouseEvents();
+        EmitCursorEvents();
+    }
 
-        ButtonState& state = mMouseButtonStates[button];
+    void InputManager::EmitKeyEvents()
+    {
+        const bool* currentKeys = SDL_GetKeyboardState(nullptr);
 
-        if (isDown)
+        for (Types::UInt32 scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
         {
-            if (not state.IsDown and not state.WasDownLastFrame)
+            InputKey key = FromKeyScancode(static_cast<SDL_Scancode>(scancode));
+
+            ButtonState& state = mKeyStates[key];
+
+            state.IsDown = currentKeys[scancode];
+
+            if (state.IsDown and not state.WasDownLastFrame)
             {
-                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Press});
+                mEventManager.Emit<KeyInputEvent>({key, InputEventType::Press});
             }
             else if (state.IsDown and state.WasDownLastFrame)
             {
-                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Hold});
+                mEventManager.Emit<KeyInputEvent>({key, InputEventType::Hold});
             }
-
-            state.IsDown = true;
-        }
-        else
-        {
-            if (state.IsDown and state.WasDownLastFrame)
+            else if (state.WasDownLastFrame and not state.IsDown)
             {
-                mApplicationData->EventManager.Emit<MouseInput>({button, Event::Release});
+                mEventManager.Emit<KeyInputEvent>({key, InputEventType::Release});
             }
 
-            state.IsDown = false;
+            state.WasDownLastFrame = state.IsDown;
         }
+    }
 
-        state.WasDownLastFrame = state.IsDown;
-    };
+    void InputManager::EmitMouseEvents()
+    {
+        Types::UInt32 mouseState = SDL_GetMouseState(nullptr, nullptr);
 
-    handleButton(MouseButton::LeftClick, SDL_BUTTON_LEFT);
-    handleButton(MouseButton::RightClick, SDL_BUTTON_RIGHT);
-    handleButton(MouseButton::MiddleClick, SDL_BUTTON_MIDDLE);
-}
+        auto handleButton = [&](InputMouseButton button, Types::UInt32 sdlButtonMask)
+        {
+            bool isDown = mouseState bitand SDL_BUTTON_MASK(sdlButtonMask);
 
-void Mosaic::InputManager::EmitCursorEvents()
-{
-    float x, y;
-    SDL_GetMouseState(&x, &y);
+            ButtonState& state = mMouseButtonStates[button];
 
-    const Vector2<std::uint32_t>& size = mApplicationData->Window.GetSize();
+            if (isDown)
+            {
+                if (not state.IsDown and not state.WasDownLastFrame)
+                {
+                    mEventManager.Emit<MouseInputEvent>({button, InputEventType::Press});
+                }
+                else if (state.IsDown and state.WasDownLastFrame)
+                {
+                    mEventManager.Emit<MouseInputEvent>({button, InputEventType::Hold});
+                }
 
-    float normx = x / static_cast<float>(size.X);
-    float normy = y / static_cast<float>(size.Y);
+                state.IsDown = true;
+            }
+            else
+            {
+                if (state.IsDown and state.WasDownLastFrame)
+                {
+                    mEventManager.Emit<MouseInputEvent>({button, InputEventType::Release});
+                }
 
-    float posx = (normx * 2.0f) - 1.0f;
-    float posy = 1.0f - (normy * 2.0f);
+                state.IsDown = false;
+            }
 
-    Vector2<float> screenPos(x, y);
-    Vector2<float> devicePos(posx, posy);
+            state.WasDownLastFrame = state.IsDown;
+        };
 
-    CursorMovement movement{.ScreenSpacePosition = screenPos, .DeviceCoordPosition = devicePos};
-    mApplicationData->EventManager.Emit<CursorMovement>(movement);
+        handleButton(InputMouseButton::LeftClick, SDL_BUTTON_LEFT);
+        handleButton(InputMouseButton::RightClick, SDL_BUTTON_RIGHT);
+        handleButton(InputMouseButton::MiddleClick, SDL_BUTTON_MIDDLE);
+    }
+
+    void InputManager::EmitCursorEvents()
+    {
+        Types::Float32 x, y;
+        SDL_GetMouseState(&x, &y);
+
+        Types::Float32 normx = x / static_cast<float>(mWindowSize.X);
+        Types::Float32 normy = y / static_cast<float>(mWindowSize.Y);
+
+        Types::Float32 posx = (normx * 2.0f) - 1.0f;
+        Types::Float32 posy = 1.0f - (normy * 2.0f);
+
+        Types::Vector2<float> screenPos(x, y);
+        Types::Vector2<float> devicePos(posx, posy);
+
+        CursorMovementEvent movement{.ScreenSpacePosition = screenPos, .DeviceCoordPosition = devicePos};
+        mEventManager.Emit<CursorMovementEvent>(movement);
+    }
+
+    void InputManager::OnWindowResize(const Windowing::WindowResizeEvent& event)
+    {
+        mWindowSize = event.Size;
+    }
+
+    InputKey FromKeyScancode(SDL_Scancode scancode)
+    {
+        switch (scancode)
+        {
+            case SDL_SCANCODE_Q:
+                return InputKey::Q;
+            case SDL_SCANCODE_W:
+                return InputKey::W;
+            case SDL_SCANCODE_E:
+                return InputKey::E;
+            case SDL_SCANCODE_R:
+                return InputKey::R;
+            case SDL_SCANCODE_T:
+                return InputKey::T;
+            case SDL_SCANCODE_Y:
+                return InputKey::Y;
+            case SDL_SCANCODE_U:
+                return InputKey::U;
+            case SDL_SCANCODE_I:
+                return InputKey::I;
+            case SDL_SCANCODE_O:
+                return InputKey::O;
+            case SDL_SCANCODE_P:
+                return InputKey::P;
+            case SDL_SCANCODE_A:
+                return InputKey::A;
+            case SDL_SCANCODE_S:
+                return InputKey::S;
+            case SDL_SCANCODE_D:
+                return InputKey::D;
+            case SDL_SCANCODE_F:
+                return InputKey::F;
+            case SDL_SCANCODE_G:
+                return InputKey::G;
+            case SDL_SCANCODE_H:
+                return InputKey::H;
+            case SDL_SCANCODE_J:
+                return InputKey::J;
+            case SDL_SCANCODE_K:
+                return InputKey::K;
+            case SDL_SCANCODE_L:
+                return InputKey::L;
+            case SDL_SCANCODE_Z:
+                return InputKey::Z;
+            case SDL_SCANCODE_X:
+                return InputKey::X;
+            case SDL_SCANCODE_C:
+                return InputKey::C;
+            case SDL_SCANCODE_V:
+                return InputKey::V;
+            case SDL_SCANCODE_B:
+                return InputKey::B;
+            case SDL_SCANCODE_N:
+                return InputKey::N;
+            case SDL_SCANCODE_M:
+                return InputKey::M;
+
+            case SDL_SCANCODE_0:
+                return InputKey::Num0;
+            case SDL_SCANCODE_1:
+                return InputKey::Num1;
+            case SDL_SCANCODE_2:
+                return InputKey::Num2;
+            case SDL_SCANCODE_3:
+                return InputKey::Num3;
+            case SDL_SCANCODE_4:
+                return InputKey::Num4;
+            case SDL_SCANCODE_5:
+                return InputKey::Num5;
+            case SDL_SCANCODE_6:
+                return InputKey::Num6;
+            case SDL_SCANCODE_7:
+                return InputKey::Num7;
+            case SDL_SCANCODE_8:
+                return InputKey::Num8;
+            case SDL_SCANCODE_9:
+                return InputKey::Num9;
+
+            case SDL_SCANCODE_F1:
+                return InputKey::F1;
+            case SDL_SCANCODE_F2:
+                return InputKey::F2;
+            case SDL_SCANCODE_F3:
+                return InputKey::F3;
+            case SDL_SCANCODE_F4:
+                return InputKey::F4;
+            case SDL_SCANCODE_F5:
+                return InputKey::F5;
+            case SDL_SCANCODE_F6:
+                return InputKey::F6;
+            case SDL_SCANCODE_F7:
+                return InputKey::F7;
+            case SDL_SCANCODE_F8:
+                return InputKey::F8;
+            case SDL_SCANCODE_F9:
+                return InputKey::F9;
+            case SDL_SCANCODE_F10:
+                return InputKey::F10;
+            case SDL_SCANCODE_F11:
+                return InputKey::F11;
+            case SDL_SCANCODE_F12:
+                return InputKey::F12;
+
+            case SDL_SCANCODE_UP:
+                return InputKey::Up;
+            case SDL_SCANCODE_DOWN:
+                return InputKey::Down;
+            case SDL_SCANCODE_LEFT:
+                return InputKey::Left;
+            case SDL_SCANCODE_RIGHT:
+                return InputKey::Right;
+
+            case SDL_SCANCODE_LSHIFT:
+                return InputKey::LeftShift;
+            case SDL_SCANCODE_RSHIFT:
+                return InputKey::RightShift;
+            case SDL_SCANCODE_LCTRL:
+                return InputKey::LeftCtrlCmd;
+            case SDL_SCANCODE_RCTRL:
+                return InputKey::RightCtrlCmd;
+            case SDL_SCANCODE_LALT:
+                return InputKey::LeftAlt;
+            case SDL_SCANCODE_RALT:
+                return InputKey::RightAlt;
+            case SDL_SCANCODE_LGUI:
+                return InputKey::LeftGUI;
+            case SDL_SCANCODE_RGUI:
+                return InputKey::RightGUI;
+            case SDL_SCANCODE_LEFTBRACKET:
+                return InputKey::LeftBracket;
+            case SDL_SCANCODE_RIGHTBRACKET:
+                return InputKey::RightBracket;
+
+            case SDL_SCANCODE_ESCAPE:
+                return InputKey::Esc;
+            case SDL_SCANCODE_RETURN:
+                return InputKey::Enter;
+            case SDL_SCANCODE_BACKSPACE:
+                return InputKey::Backspace;
+            case SDL_SCANCODE_TAB:
+                return InputKey::Tab;
+            case SDL_SCANCODE_CAPSLOCK:
+                return InputKey::CapsLock;
+            case SDL_SCANCODE_SPACE:
+                return InputKey::Space;
+            case SDL_SCANCODE_GRAVE:
+                return InputKey::Grave;
+            case SDL_SCANCODE_MINUS:
+                return InputKey::Minus;
+            case SDL_SCANCODE_EQUALS:
+                return InputKey::Equals;
+
+            case SDL_SCANCODE_BACKSLASH:
+                return InputKey::Backslash;
+            case SDL_SCANCODE_SEMICOLON:
+                return InputKey::Semicolon;
+            case SDL_SCANCODE_APOSTROPHE:
+                return InputKey::Apostrophe;
+            case SDL_SCANCODE_COMMA:
+                return InputKey::Comma;
+            case SDL_SCANCODE_PERIOD:
+                return InputKey::Period;
+            case SDL_SCANCODE_SLASH:
+                return InputKey::Slash;
+            case SDL_SCANCODE_INSERT:
+                return InputKey::Insert;
+            case SDL_SCANCODE_DELETE:
+                return InputKey::Delete;
+            case SDL_SCANCODE_HOME:
+                return InputKey::Home;
+            case SDL_SCANCODE_END:
+                return InputKey::End;
+            case SDL_SCANCODE_PAGEUP:
+                return InputKey::PageUp;
+            case SDL_SCANCODE_PAGEDOWN:
+                return InputKey::PageDown;
+            case SDL_SCANCODE_PRINTSCREEN:
+                return InputKey::PrintScreen;
+            case SDL_SCANCODE_SCROLLLOCK:
+                return InputKey::ScrollLock;
+            case SDL_SCANCODE_PAUSE:
+                return InputKey::Pause;
+            case SDL_SCANCODE_APPLICATION:
+                return InputKey::Menu;
+
+            case SDL_SCANCODE_NUMLOCKCLEAR:
+                return InputKey::NumLockClear;
+            case SDL_SCANCODE_KP_DIVIDE:
+                return InputKey::NumpadDivide;
+            case SDL_SCANCODE_KP_MULTIPLY:
+                return InputKey::NumpadMultiply;
+            case SDL_SCANCODE_KP_MINUS:
+                return InputKey::NumpadMinus;
+            case SDL_SCANCODE_KP_PLUS:
+                return InputKey::NumpadPlus;
+            case SDL_SCANCODE_KP_ENTER:
+                return InputKey::NumpadEnter;
+            case SDL_SCANCODE_KP_PERIOD:
+                return InputKey::NumpadPeriod;
+
+            case SDL_SCANCODE_KP_0:
+                return InputKey::Numpad0;
+            case SDL_SCANCODE_KP_1:
+                return InputKey::Numpad1;
+            case SDL_SCANCODE_KP_2:
+                return InputKey::Numpad2;
+            case SDL_SCANCODE_KP_3:
+                return InputKey::Numpad3;
+            case SDL_SCANCODE_KP_4:
+                return InputKey::Numpad4;
+            case SDL_SCANCODE_KP_5:
+                return InputKey::Numpad5;
+            case SDL_SCANCODE_KP_6:
+                return InputKey::Numpad6;
+            case SDL_SCANCODE_KP_7:
+                return InputKey::Numpad7;
+            case SDL_SCANCODE_KP_8:
+                return InputKey::Numpad8;
+            case SDL_SCANCODE_KP_9:
+                return InputKey::Numpad9;
+
+            default:
+                return InputKey::Unknown;
+        }
+    }
 }

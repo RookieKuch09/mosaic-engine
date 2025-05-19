@@ -9,12 +9,16 @@
 #include "rendering/vulkan/surface.hpp"
 #include "rendering/vulkan/swapchain.hpp"
 
-#include "utilities/arithmetic.hpp"
+#include "utilities/numerics.hpp"
+#include "utilities/vector.hpp"
 
-namespace Mosaic
+namespace Mosaic::Internal::Windowing
 {
     struct WindowResizeEvent;
+}
 
+namespace Mosaic::Internal::Rendering
+{
     class VulkanRenderer : public RendererInterface
     {
     public:
@@ -27,9 +31,9 @@ namespace Mosaic
 
         void CreateSwapchain();
 
-        void ResizeCallback(const WindowResizeEvent& event);
+        void ResizeCallback(const Windowing::WindowResizeEvent& event);
 
-        Vector2<uint32> mWindowSize;
+        Types::Vector2<Types::UInt32> mWindowSize;
         VulkanInstance mInstance;
         VulkanPhysicalDevice mPhysicalDevice;
         VulkanDevice mDevice;

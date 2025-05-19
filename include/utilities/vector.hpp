@@ -1,35 +1,18 @@
 #pragma once
 
-#include "utilities/arithmetic.hpp"
+#include "utilities/typeinfo.hpp"
 
-#include <type_traits>
-
-namespace Mosaic
+namespace Mosaic::Internal::Types
 {
-    template <typename T>
-    concept Arithmetic = std::is_arithmetic_v<T>;
 
-    template <typename T>
-    struct IsVector : std::false_type
-    {
-    };
-
-    template <Arithmetic T, uint32 Length>
+    template <TypeConcepts::Numeric T, UInt32 Length>
     class Vector
     {
     public:
         using ValueType = T;
     };
 
-    template <Arithmetic T, uint32 N>
-    struct IsVector<Vector<T, N>> : std::true_type
-    {
-    };
-
-    template <typename T>
-    constexpr bool IsVectorV = IsVector<T>::value;
-
-    template <Arithmetic T>
+    template <TypeConcepts::Numeric T>
     class Vector<T, 2>
     {
     public:
@@ -57,7 +40,7 @@ namespace Mosaic
         Vector<T, 2>& operator=(Vector&& other) noexcept;
     };
 
-    template <Arithmetic T>
+    template <TypeConcepts::Numeric T>
     class Vector<T, 3>
     {
     public:
@@ -85,7 +68,7 @@ namespace Mosaic
         Vector<T, 3>& operator=(Vector&& other) noexcept;
     };
 
-    template <Arithmetic T>
+    template <TypeConcepts::Numeric T>
     class Vector<T, 4>
     {
     public:
@@ -112,44 +95,6 @@ namespace Mosaic
         Vector<T, 4>& operator=(const Vector& other);
         Vector<T, 4>& operator=(Vector&& other) noexcept;
     };
-
-    template <typename T>
-    struct VectorType
-    {
-        using Type = T;
-    };
-
-    template <Arithmetic T, uint32 N>
-    struct VectorType<Vector<T, N>>
-    {
-        using Type = T;
-    };
-
-    template <typename T>
-    using VectorTypeT = typename VectorType<T>::Type;
-
-    template <typename T>
-    struct VectorElementCount : std::integral_constant<uint32, 1>
-    {
-    };
-
-    template <typename T>
-    struct VectorElementCount<Vector<T, 2>> : std::integral_constant<uint32, 2>
-    {
-    };
-
-    template <typename T>
-    struct VectorElementCount<Vector<T, 3>> : std::integral_constant<uint32, 3>
-    {
-    };
-
-    template <typename T>
-    struct VectorElementCount<Vector<T, 4>> : std::integral_constant<uint32, 4>
-    {
-    };
-
-    template <typename T>
-    constexpr uint32 VectorElementCountV = VectorElementCount<T>::value;
 
     template <typename T>
     using Vector2 = Vector<T, 2>;

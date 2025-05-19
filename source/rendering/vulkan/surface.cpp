@@ -5,36 +5,39 @@
 #include "application/console.hpp"
 #include "application/window.hpp"
 
-void Mosaic::VulkanSurface::SelectFormat(VulkanPhysicalDevice& physicalDevice, vk::Format format, vk::ColorSpaceKHR space)
+namespace Mosaic::Internal::Rendering
 {
-    auto formats = physicalDevice.Get().getSurfaceFormatsKHR(*mSurface);
-
-    if (formats.empty())
+    void VulkanSurface::SelectFormat(VulkanPhysicalDevice& physicalDevice, vk::Format format, vk::ColorSpaceKHR space)
     {
-        Console::Throw("vk::Surface does not support any formats");
+        auto formats = physicalDevice.Get().getSurfaceFormatsKHR(*mSurface);
+
+        if (formats.empty())
+        {
+            Console::Throw("vk::Surface does not support any formats");
+        }
+
+        auto match = [&](auto const& f)
+        {
+            return f.format == format and f.colorSpace == space;
+        };
+
+        auto itf = std::find_if(formats.begin(), formats.end(), match);
+
+        mFormat = (itf != formats.end() ? *itf : formats[0]);
     }
 
-    auto match = [&](auto const& f)
+    void VulkanSurface::Create(Windowing::Window& window, VulkanInstance& instance)
     {
-        return f.format == format and f.colorSpace == space;
-    };
+        window.GetVulkanWindowSurface(*mSurface, instance.Get());
+    }
 
-    auto itf = std::find_if(formats.begin(), formats.end(), match);
+    vk::SurfaceKHR& VulkanSurface::GetHandle()
+    {
+        return *mSurface;
+    }
 
-    mFormat = (itf != formats.end() ? *itf : formats[0]);
-}
-
-void Mosaic::VulkanSurface::Create(Window& window, VulkanInstance& instance)
-{
-    window.GetVulkanWindowSurface(*mSurface, instance.Get());
-}
-
-vk::SurfaceKHR& Mosaic::VulkanSurface::GetHandle()
-{
-    return *mSurface;
-}
-
-vk::SurfaceFormatKHR& Mosaic::VulkanSurface::GetFormat()
-{
-    return mFormat;
+    vk::SurfaceFormatKHR& VulkanSurface::GetFormat()
+    {
+        return mFormat;
+    }
 }

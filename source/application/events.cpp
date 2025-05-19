@@ -2,43 +2,46 @@
 
 #include <algorithm>
 
-void Mosaic::EventManager::Unsubscribe(void* subscriber)
+namespace Mosaic::Internal
 {
-    auto condition = [&](const Listener& listener)
+    void EventManager::Unsubscribe(void* subscriber)
     {
-        return listener.Subscriber == subscriber;
-    };
-
-    for (auto& [event, subscriptions] : mListeners)
-    {
-        subscriptions.erase(std::remove_if(subscriptions.begin(), subscriptions.end(), condition), subscriptions.end());
-    }
-}
-
-void Mosaic::EventManager::Update()
-{
-    for (auto event = mEventQueue.begin(); event != mEventQueue.end();)
-    {
-        auto eventListeners = mListeners.find(event->first);
-
-        if (eventListeners != mListeners.end())
+        auto condition = [&](const EventListener& listener)
         {
-            auto& queue = event->second;
-            auto& listeners = eventListeners->second;
+            return listener.Subscriber == subscriber;
+        };
 
-            while (not queue.empty())
-            {
-                const std::any& event = queue.front();
-
-                for (auto& listener : listeners)
-                {
-                    listener.Callback(event);
-                }
-
-                queue.pop();
-            }
+        for (auto& [event, subscriptions] : mListeners)
+        {
+            subscriptions.erase(std::remove_if(subscriptions.begin(), subscriptions.end(), condition), subscriptions.end());
         }
+    }
 
-        event = mEventQueue.erase(event);
+    void EventManager::Update()
+    {
+        for (auto event = mEventQueue.begin(); event != mEventQueue.end();)
+        {
+            auto eventListeners = mListeners.find(event->first);
+
+            if (eventListeners != mListeners.end())
+            {
+                auto& queue = event->second;
+                auto& listeners = eventListeners->second;
+
+                while (not queue.empty())
+                {
+                    const std::any& event = queue.front();
+
+                    for (auto& listener : listeners)
+                    {
+                        listener.Callback(event);
+                    }
+
+                    queue.pop();
+                }
+            }
+
+            event = mEventQueue.erase(event);
+        }
     }
 }
