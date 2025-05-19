@@ -2,6 +2,7 @@
 
 #include "utilities/arithmetic.hpp"
 
+#include <variant>
 #include <vector>
 
 namespace Mosaic
@@ -83,9 +84,8 @@ namespace Mosaic
         struct RawTypeMap;
 
         RawType Type;
-        uint32 AttributeLength;
-        uint32 VertexLength;
-        uint32 AttributeOffset;
+        uint32 AttributeLengthBytes;
+        uint32 AttributeOffsetBytes;
         uint32 AttributeIndex;
 
         friend class Mesh;
@@ -116,7 +116,13 @@ namespace Mosaic
         void Unsubmit();
 
     private:
+        template <typename T>
+        void FlattenToRawBytes(const std::vector<T>& input);
+
         std::vector<MeshAttributeBase> mAttributes;
+        std::vector<std::byte> mRawData;
+
+        uint32 mVertexLengthBytes;
     };
 }
 
