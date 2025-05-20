@@ -41,7 +41,7 @@ namespace Mosaic::Internal::Files
         return fallback;
     }
 
-    template <typename T, Types::UInt32 N>
+    template <typename T, Types::UI32 N>
     std::array<T, N> ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key) const
     {
         auto keys = SplitKey(key);
@@ -75,7 +75,7 @@ namespace Mosaic::Internal::Files
         throw;
     }
 
-    template <typename T, Types::UInt32 N>
+    template <typename T, Types::UI32 N>
     std::array<T, N> ConfigFile<ConfigFiletype::TOML>::Get(const std::string& key, const std::array<T, N>& fallback) const
     {
         auto keys = SplitKey(key);
@@ -107,7 +107,7 @@ namespace Mosaic::Internal::Files
         return fallback;
     }
 
-    template <typename T, Types::UInt32 N>
+    template <typename T, Types::UI32 N>
     std::optional<std::array<T, N>> ConfigFile<ConfigFiletype::TOML>::ExtractArray(const toml::node* node)
     {
         if (const auto* arr = node ? node->as_array() : nullptr)
@@ -119,7 +119,7 @@ namespace Mosaic::Internal::Files
 
             std::array<T, N> result;
 
-            for (Types::UInt32 index = 0; index < N; index++)
+            for (Types::UI32 index = 0; index < N; index++)
             {
                 if (auto val = (*arr)[index].value<T>())
                 {
@@ -181,7 +181,7 @@ namespace Mosaic::Internal::Files
 
         toml::table* table = &mData;
 
-        for (Types::UInt32 index = 0; index < keys.size() - 1; index++)
+        for (Types::UI32 index = 0; index < keys.size() - 1; index++)
         {
             if (not table->contains(keys[index]) or not(*table)[keys[index]].is_table())
             {

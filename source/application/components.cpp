@@ -32,7 +32,7 @@ namespace Mosaic::Internal
 
     void ComponentManager::Start()
     {
-        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
+        for (Types::UI32 i = 0; i < mComponents.size(); i++)
         {
             auto& component = mComponents[i];
 
@@ -43,7 +43,7 @@ namespace Mosaic::Internal
 
     void ComponentManager::Update()
     {
-        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
+        for (Types::UI32 i = 0; i < mComponents.size(); i++)
         {
             auto& component = mComponents[i];
 
@@ -59,7 +59,7 @@ namespace Mosaic::Internal
 
     void ComponentManager::Stop()
     {
-        for (Types::UInt32 i = 0; i < mComponents.size(); i++)
+        for (Types::UI32 i = 0; i < mComponents.size(); i++)
         {
             mComponents[i]->Stop();
         }

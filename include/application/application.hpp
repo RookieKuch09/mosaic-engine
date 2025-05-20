@@ -19,16 +19,16 @@ namespace Mosaic::Internal
     class Instance
     {
     public:
-        Instance(ComponentManager& componentManager, EventManager eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
+        Instance(ComponentManager& componentManager, EventManager& eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
+
+        static Instance* ProvideInstance(ComponentManager& componentManager, EventManager& eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
 
     protected:
-        virtual void Setup() = 0;
-
         Windowing::Window& mWindow;
         Rendering::Renderer& mRenderer;
 
         EventManager& mEventManager;
-        InputManager& mInputManager;
+        ComponentManager& mComponentManager;
 
         friend class Application;
     };
@@ -38,7 +38,7 @@ namespace Mosaic::Internal
     public:
         Application();
 
-        Types::Int32 Run();
+        Types::I32 Run();
 
         Windowing::Window mWindow;
         Rendering::Renderer mRenderer;
@@ -53,6 +53,4 @@ namespace Mosaic::Internal
 
         bool mDebugMode;
     };
-
-    Instance* CreateInstance(ComponentManager& componentManager, EventManager eventManager, Windowing::Window& window, Rendering::Renderer& renderer);
 }

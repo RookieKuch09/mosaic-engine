@@ -10,16 +10,16 @@ namespace Mosaic::Internal::Rendering
 {
     enum class AttributeType
     {
-        Float32,
-        Float64,
-        Int8,
-        Int16,
-        Int32,
-        Int64,
-        UInt8,
-        UInt16,
-        UInt32,
-        UInt64,
+        F32,
+        F64,
+        I8,
+        I16,
+        I32,
+        I64,
+        UI8,
+        UI16,
+        UI32,
+        UI64,
     };
 
     template <TypeConcepts::Numeric T>
@@ -28,64 +28,64 @@ namespace Mosaic::Internal::Rendering
     };
 
     template <>
-    struct AttributeTypeMapping<Types::Float32>
+    struct AttributeTypeMapping<Types::F32>
     {
-        static constexpr AttributeType Value = AttributeType::Float32;
+        static constexpr AttributeType Value = AttributeType::F32;
     };
     template <>
-    struct AttributeTypeMapping<Types::Float64>
+    struct AttributeTypeMapping<Types::F64>
     {
-        static constexpr AttributeType Value = AttributeType::Float64;
-    };
-
-    template <>
-    struct AttributeTypeMapping<Types::Int8>
-    {
-        static constexpr AttributeType Value = AttributeType::Int8;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::Int16>
-    {
-        static constexpr AttributeType Value = AttributeType::Int16;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::Int32>
-    {
-        static constexpr AttributeType Value = AttributeType::Int32;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::Int64>
-    {
-        static constexpr AttributeType Value = AttributeType::Int64;
+        static constexpr AttributeType Value = AttributeType::F64;
     };
 
     template <>
-    struct AttributeTypeMapping<Types::UInt8>
+    struct AttributeTypeMapping<Types::I8>
     {
-        static constexpr AttributeType Value = AttributeType::UInt8;
+        static constexpr AttributeType Value = AttributeType::I8;
     };
     template <>
-    struct AttributeTypeMapping<Types::UInt16>
+    struct AttributeTypeMapping<Types::I16>
     {
-        static constexpr AttributeType Value = AttributeType::UInt16;
+        static constexpr AttributeType Value = AttributeType::I16;
     };
     template <>
-    struct AttributeTypeMapping<Types::UInt32>
+    struct AttributeTypeMapping<Types::UI32>
     {
-        static constexpr AttributeType Value = AttributeType::UInt32;
+        static constexpr AttributeType Value = AttributeType::UI32;
     };
     template <>
-    struct AttributeTypeMapping<Types::UInt64>
+    struct AttributeTypeMapping<Types::I64>
     {
-        static constexpr AttributeType Value = AttributeType::UInt64;
+        static constexpr AttributeType Value = AttributeType::I64;
+    };
+
+    template <>
+    struct AttributeTypeMapping<Types::UI8>
+    {
+        static constexpr AttributeType Value = AttributeType::UI8;
+    };
+    template <>
+    struct AttributeTypeMapping<Types::UI16>
+    {
+        static constexpr AttributeType Value = AttributeType::UI16;
+    };
+    template <>
+    struct AttributeTypeMapping<Types::I32>
+    {
+        static constexpr AttributeType Value = AttributeType::UI32;
+    };
+    template <>
+    struct AttributeTypeMapping<Types::UI64>
+    {
+        static constexpr AttributeType Value = AttributeType::UI64;
     };
 
     template <typename T>
     struct AttributeInfo
     {
         static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UInt32 Count = 1;
-        static constexpr Types::UInt32 TypeSize = sizeof(T);
+        static constexpr Types::UI32 Count = 1;
+        static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
@@ -93,8 +93,8 @@ namespace Mosaic::Internal::Rendering
     struct AttributeInfo<Types::Vector<T, 2>>
     {
         static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UInt32 Count = 2;
-        static constexpr Types::UInt32 TypeSize = sizeof(T);
+        static constexpr Types::UI32 Count = 2;
+        static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
@@ -102,8 +102,8 @@ namespace Mosaic::Internal::Rendering
     struct AttributeInfo<Types::Vector<T, 3>>
     {
         static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UInt32 Count = 3;
-        static constexpr Types::UInt32 TypeSize = sizeof(T);
+        static constexpr Types::UI32 Count = 3;
+        static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
@@ -111,8 +111,8 @@ namespace Mosaic::Internal::Rendering
     struct AttributeInfo<Types::Vector<T, 4>>
     {
         static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UInt32 Count = 4;
-        static constexpr Types::UInt32 TypeSize = sizeof(T);
+        static constexpr Types::UI32 Count = 4;
+        static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
@@ -120,9 +120,10 @@ namespace Mosaic::Internal::Rendering
     {
     protected:
         AttributeType EnumType;
-        Types::UInt32 LengthBytes;
-        Types::UInt32 OffsetBytes;
-        Types::UInt32 Index;
+        Types::UI32 LengthBytes;
+        Types::UI32 OffsetBytes;
+        Types::UI32 Index;
+        Types::UI32 TypeSize;
 
         friend class Mesh;
     };
@@ -132,20 +133,20 @@ namespace Mosaic::Internal::Rendering
     {
     public:
         MeshAttribute() = delete;
-        MeshAttribute(Types::UInt32 count);
+        MeshAttribute(Types::UI32 count);
 
     private:
-        void GetTypeData(Types::UInt32 count);
+        void GetTypeData(Types::UI32 count);
     };
 
     class Mesh
     {
     public:
         template <typename... Args>
-        void SetLayout(const MeshAttribute<Args>&... formats);
+        inline void SetLayout(const MeshAttribute<Args>&... formats);
 
         template <typename... Args>
-        void SetVertexData(const std::vector<Args>&... data);
+        inline void SetVertexData(const std::vector<Args>&... data);
 
         void Submit();
         void Unsubmit();
@@ -153,22 +154,22 @@ namespace Mosaic::Internal::Rendering
     private:
         bool CanSetVertexData() const;
 
-        template <Types::UInt32 NumInputs>
+        template <Types::UI64 NumInputs>
         bool ValidateAttributeCount() const;
 
-        template <typename... Args, Types::UInt32 NumInputs>
-        bool ValidateAttributeData(const std::vector<Args>&... data, std::array<Types::UInt32, NumInputs>& outCounts);
+        template <typename... Args>
+        bool ValidateAttributeData(const std::vector<Args>&... data, std::array<Types::UI32, sizeof...(Args)>& outCounts);
 
-        template <Types::UInt32 NumInputs>
-        bool ValidateVertexCounts(const std::array<Types::UInt32, NumInputs>& counts);
+        template <Types::UI64 NumInputs>
+        bool ValidateVertexCounts(const std::array<Types::UI32, NumInputs>& counts);
 
-        template <size_t... Is, typename... Args>
-        void InterleaveVertexData(Types::UInt32 vertex, std::index_sequence<Is...>, const std::tuple<const std::vector<Args>&...>& dataTuple);
+        template <Types::UI64... NumInputs, typename... Args>
+        void InterleaveVertexData(Types::UI32 vertex, std::index_sequence<NumInputs...>, const std::tuple<const std::vector<Args>&...>& dataTuple);
 
         std::vector<std::unique_ptr<MeshAttributeBase>> mAttributes;
         std::vector<std::byte> mRawData;
 
-        Types::UInt32 mVertexLengthBytes;
+        Types::UI32 mVertexLengthBytes;
     };
 }
 

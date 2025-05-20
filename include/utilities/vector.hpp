@@ -5,7 +5,7 @@
 namespace Mosaic::Internal::Types
 {
 
-    template <TypeConcepts::Numeric T, UInt32 Length>
+    template <TypeConcepts::Numeric T, UI32 Length>
     class Vector
     {
     public:

@@ -19,7 +19,7 @@ namespace Mosaic::Internal::Rendering
         mCommandBuffers = device.Get().allocateCommandBuffersUnique(allocInfo);
     }
 
-    void VulkanCommandSystem::BeginFrame(Types::UInt32 imageIndex)
+    void VulkanCommandSystem::BeginFrame(Types::UI32 imageIndex)
     {
         auto& commandBuffer = mCommandBuffers[imageIndex];
 
@@ -28,14 +28,14 @@ namespace Mosaic::Internal::Rendering
         commandBuffer->begin(beginInfo);
     }
 
-    void VulkanCommandSystem::EndFrame(Types::UInt32 imageIndex)
+    void VulkanCommandSystem::EndFrame(Types::UI32 imageIndex)
     {
         auto& commandBuffer = mCommandBuffers[imageIndex];
 
         commandBuffer->end();
     }
 
-    void VulkanCommandSystem::RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UInt32 imageIndex, const Types::Vector4<Types::Float32>& clear)
+    void VulkanCommandSystem::RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vector4<Types::F32>& clear)
     {
         auto& commandBuffer = mCommandBuffers[imageIndex];
 
@@ -47,7 +47,7 @@ namespace Mosaic::Internal::Rendering
         commandBuffer->endRenderPass();
     }
 
-    vk::CommandBuffer& VulkanCommandSystem::GetCommandBuffer(Types::UInt32 imageIndex)
+    vk::CommandBuffer& VulkanCommandSystem::GetCommandBuffer(Types::UI32 imageIndex)
     {
         return *mCommandBuffers[imageIndex];
     }

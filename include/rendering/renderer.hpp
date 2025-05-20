@@ -53,7 +53,7 @@ namespace Mosaic::Internal::Rendering
         void Create();
         void Update();
 
-        Types::Vector4<Types::Float32> mClearColour;
+        Types::Vector4<Types::F32> mClearColour;
 
         RendererAPI mAPI;
         RendererVSync mVSync;

@@ -22,10 +22,10 @@ namespace Mosaic::Internal::Rendering
         vk::Queue GetTransferQueue() const;
         vk::Queue GetPresentQueue() const;
 
-        Types::UInt32 GetGraphicsQueueFamily() const;
-        Types::UInt32 GetComputeQueueFamily() const;
-        Types::UInt32 GetTransferQueueFamily() const;
-        Types::UInt32 GetPresentQueueFamily() const;
+        Types::UI32 GetGraphicsQueueFamily() const;
+        Types::UI32 GetComputeQueueFamily() const;
+        Types::UI32 GetTransferQueueFamily() const;
+        Types::UI32 GetPresentQueueFamily() const;
 
         std::vector<vk::DeviceQueueCreateInfo>& GetQueueCreateInfo();
 
@@ -37,12 +37,12 @@ namespace Mosaic::Internal::Rendering
         vk::Queue mTransferQueue;
         vk::Queue mPresentQueue;
 
-        std::optional<Types::UInt32> mGraphicsFamily;
-        std::optional<Types::UInt32> mComputeFamily;
-        std::optional<Types::UInt32> mTransferFamily;
-        std::optional<Types::UInt32> mPresentFamily;
+        std::optional<Types::UI32> mGraphicsFamily;
+        std::optional<Types::UI32> mComputeFamily;
+        std::optional<Types::UI32> mTransferFamily;
+        std::optional<Types::UI32> mPresentFamily;
 
-        Types::Float32 mQueuePriority;
+        Types::F32 mQueuePriority;
 
         std::vector<vk::DeviceQueueCreateInfo> mQueueCreateInfos;
     };

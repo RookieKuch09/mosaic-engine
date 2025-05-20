@@ -36,12 +36,12 @@ namespace Mosaic::Internal::Windowing
 
     struct WindowMoveEvent
     {
-        Types::Vector2<Types::UInt32> Position;
+        Types::Vector2<Types::UI32> Position;
     };
 
     struct WindowResizeEvent
     {
-        Types::Vector2<Types::UInt32> Size;
+        Types::Vector2<Types::UI32> Size;
     };
 
     class Window
@@ -69,8 +69,8 @@ namespace Mosaic::Internal::Windowing
         void GetVulkanWindowSurface(vk::SurfaceKHR& surface, vk::Instance& instance) const;
         std::unordered_set<std::string> GetVulkanRequiredInstanceExtensions() const;
 
-        Types::Vector2<Types::UInt32> mSize;
-        Types::Vector2<Types::UInt32> mPosition;
+        Types::Vector2<Types::UI32> mSize;
+        Types::Vector2<Types::UI32> mPosition;
 
         std::string mTitle;
         std::string mConfigPath;

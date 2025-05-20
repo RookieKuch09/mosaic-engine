@@ -11,61 +11,61 @@ namespace Mosaic::Internal::TypeChecks
     };
 
     template <>
-    struct IsNumeric<Types::Float32>
+    struct IsNumeric<Types::F32>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::Float64>
+    struct IsNumeric<Types::F64>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::Int8>
+    struct IsNumeric<Types::I8>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::Int16>
+    struct IsNumeric<Types::I16>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::Int32>
+    struct IsNumeric<Types::UI32>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::Int64>
+    struct IsNumeric<Types::I64>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::UInt8>
+    struct IsNumeric<Types::UI8>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::UInt16>
+    struct IsNumeric<Types::UI16>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::UInt32>
+    struct IsNumeric<Types::I32>
     {
         static constexpr bool Result = true;
     };
 
     template <>
-    struct IsNumeric<Types::UInt64>
+    struct IsNumeric<Types::UI64>
     {
         static constexpr bool Result = true;
     };

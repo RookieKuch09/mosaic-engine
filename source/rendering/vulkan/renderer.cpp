@@ -56,7 +56,7 @@ namespace Mosaic::Internal::Rendering
 
         mFramebuffers.resize(mSwapchain.GetImageCount());
 
-        for (Types::UInt32 index = 0; index < mSwapchain.GetImageCount(); index++)
+        for (Types::UI32 index = 0; index < mSwapchain.GetImageCount(); index++)
         {
             auto& framebuffer = mFramebuffers[index];
 
@@ -83,7 +83,7 @@ namespace Mosaic::Internal::Rendering
 
         mDevice.AwaitFences(mSwapchain);
 
-        Types::UInt32 imageIndex = mDevice.GetNextImageIndex(*this, mSwapchain);
+        Types::UI32 imageIndex = mDevice.GetNextImageIndex(*this, mSwapchain);
 
         if (mRebuildSwapchainOutOfDate or mRebuildSwapchainSuboptimal)
         {

@@ -47,7 +47,7 @@ namespace Mosaic::Internal::Rendering
     {
         Files::TOMLFile file(mRenderer.mConfigPath);
 
-        auto version = file.Get<Types::UInt32, 2>("OpenGL.Version");
+        auto version = file.Get<Types::UI32, 2>("OpenGL.Version");
 
         mVersion.X = version[0];
         mVersion.Y = version[1];

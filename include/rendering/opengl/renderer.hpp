@@ -27,8 +27,8 @@ namespace Mosaic::Internal::Rendering
 
         SDL_GLContext mContext;
 
-        Types::UInt32 mSwapInterval;
-        Types::Vector2<Types::UInt32> mVersion;
+        Types::UI32 mSwapInterval;
+        Types::Vector2<Types::UI32> mVersion;
         Renderer& mRenderer;
     };
 }

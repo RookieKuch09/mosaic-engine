@@ -99,7 +99,7 @@ namespace Mosaic::Internal::Rendering
 
         auto extensions = getVectorCStrings(mExtensions);
 
-        vk::DeviceCreateInfo deviceCreateInfo = {{}, static_cast<Types::UInt32>(queues.GetQueueCreateInfo().size()), queues.GetQueueCreateInfo().data(), 0, nullptr, static_cast<Types::UInt32>(extensions.size()), extensions.data()};
+        vk::DeviceCreateInfo deviceCreateInfo = {{}, static_cast<Types::UI32>(queues.GetQueueCreateInfo().size()), queues.GetQueueCreateInfo().data(), 0, nullptr, static_cast<Types::UI32>(extensions.size()), extensions.data()};
 
         vk::PhysicalDeviceFeatures2 enabledFeatures{};
         vk::PhysicalDeviceVulkan11Features enabled11{};
@@ -136,9 +136,9 @@ namespace Mosaic::Internal::Rendering
         mDevice->resetFences(swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].InFlight.get());
     }
 
-    Types::UInt32 VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain)
+    Types::UI32 VulkanDevice::GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain)
     {
-        Types::UInt32 imageIndex = 0;
+        Types::UI32 imageIndex = 0;
 
         auto semaphore = swapchain.GetSyncFrames()[swapchain.GetCurrentFrame()].ImageAvailable.get();
 

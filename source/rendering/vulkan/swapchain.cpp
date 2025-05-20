@@ -55,7 +55,7 @@ namespace Mosaic::Internal::Rendering
         return mImageView.get();
     }
 
-    Types::UInt32& VulkanFramebuffer::GetIndex()
+    Types::UI32& VulkanFramebuffer::GetIndex()
     {
         return mIndex;
     }
@@ -110,7 +110,7 @@ namespace Mosaic::Internal::Rendering
         return mRenderPass.get();
     }
 
-    void VulkanSwapchain::Create(const Types::Vector2<Types::UInt32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
+    void VulkanSwapchain::Create(const Types::Vector2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
     {
         auto presentModes = physicalDevice.Get().getSurfacePresentModesKHR(surface.GetHandle());
         auto capabilities = physicalDevice.Get().getSurfaceCapabilitiesKHR(surface.GetHandle());
@@ -175,7 +175,7 @@ namespace Mosaic::Internal::Rendering
             mImageCount += 1;
         }
 
-        if (capabilities.currentExtent.width != std::numeric_limits<Types::UInt32>::max())
+        if (capabilities.currentExtent.width != std::numeric_limits<Types::UI32>::max())
         {
             mSwapchainExtent = capabilities.currentExtent;
         }
@@ -220,7 +220,7 @@ namespace Mosaic::Internal::Rendering
         vk::SemaphoreCreateInfo semaphoreInfo{};
         vk::FenceCreateInfo fenceInfo{vk::FenceCreateFlagBits::eSignaled};
 
-        for (Types::UInt32 index = 0; index < mFramesInFlight; index++)
+        for (Types::UI32 index = 0; index < mFramesInFlight; index++)
         {
             VulkanFrameSyncObjects frameSync{};
 
@@ -242,22 +242,22 @@ namespace Mosaic::Internal::Rendering
         return mSwapchainExtent;
     }
 
-    vk::Image& VulkanSwapchain::GetImage(Types::UInt32 index)
+    vk::Image& VulkanSwapchain::GetImage(Types::UI32 index)
     {
         return mSwapchainImages[index];
     }
 
-    Types::UInt32 VulkanSwapchain::GetImageCount()
+    Types::UI32 VulkanSwapchain::GetImageCount()
     {
         return mImageCount;
     }
 
-    Types::UInt32 VulkanSwapchain::GetInFlightFrames()
+    Types::UI32 VulkanSwapchain::GetInFlightFrames()
     {
         return mFramesInFlight;
     }
 
-    Types::UInt32 VulkanSwapchain::GetCurrentFrame()
+    Types::UI32 VulkanSwapchain::GetCurrentFrame()
     {
         return mCurrentFrame;
     }
@@ -272,7 +272,7 @@ namespace Mosaic::Internal::Rendering
         return mSyncFrames;
     }
 
-    void VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueues& queues, Types::UInt32 imageIndex)
+    void VulkanSwapchain::PresentFrame(VulkanRenderer& renderer, VulkanQueues& queues, Types::UI32 imageIndex)
     {
         vk::PresentInfoKHR presentInfo = {
             1, &mSyncFrames[GetCurrentFrame()].RenderFinished.get(),

@@ -20,7 +20,7 @@ namespace Mosaic::Internal
     {
         const bool* currentKeys = SDL_GetKeyboardState(nullptr);
 
-        for (Types::UInt32 scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
+        for (Types::UI32 scancode = 0; scancode < SDL_SCANCODE_COUNT; scancode++)
         {
             InputKey key = FromKeyScancode(static_cast<SDL_Scancode>(scancode));
 
@@ -47,9 +47,9 @@ namespace Mosaic::Internal
 
     void InputManager::EmitMouseEvents()
     {
-        Types::UInt32 mouseState = SDL_GetMouseState(nullptr, nullptr);
+        Types::UI32 mouseState = SDL_GetMouseState(nullptr, nullptr);
 
-        auto handleButton = [&](InputMouseButton button, Types::UInt32 sdlButtonMask)
+        auto handleButton = [&](InputMouseButton button, Types::UI32 sdlButtonMask)
         {
             bool isDown = mouseState bitand SDL_BUTTON_MASK(sdlButtonMask);
 
@@ -88,14 +88,14 @@ namespace Mosaic::Internal
 
     void InputManager::EmitCursorEvents()
     {
-        Types::Float32 x, y;
+        Types::F32 x, y;
         SDL_GetMouseState(&x, &y);
 
-        Types::Float32 normx = x / static_cast<float>(mWindowSize.X);
-        Types::Float32 normy = y / static_cast<float>(mWindowSize.Y);
+        Types::F32 normx = x / static_cast<float>(mWindowSize.X);
+        Types::F32 normy = y / static_cast<float>(mWindowSize.Y);
 
-        Types::Float32 posx = (normx * 2.0f) - 1.0f;
-        Types::Float32 posy = 1.0f - (normy * 2.0f);
+        Types::F32 posx = (normx * 2.0f) - 1.0f;
+        Types::F32 posy = 1.0f - (normy * 2.0f);
 
         Types::Vector2<float> screenPos(x, y);
         Types::Vector2<float> devicePos(posx, posy);
@@ -109,7 +109,7 @@ namespace Mosaic::Internal
         mWindowSize = event.Size;
     }
 
-    InputKey FromKeyScancode(SDL_Scancode scancode)
+    InputKey InputManager::FromKeyScancode(SDL_Scancode scancode)
     {
         switch (scancode)
         {

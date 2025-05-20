@@ -36,13 +36,13 @@ namespace Mosaic::Internal::Rendering
         vk::Framebuffer& GetFramebuffer();
         vk::ImageView& GetImageView();
 
-        Types::UInt32& GetIndex();
+        Types::UI32& GetIndex();
 
     private:
         vk::UniqueFramebuffer mFramebuffer;
         vk::UniqueImageView mImageView;
 
-        Types::UInt32 mIndex;
+        Types::UI32 mIndex;
     };
 
     class VulkanRenderPass
@@ -59,20 +59,20 @@ namespace Mosaic::Internal::Rendering
     class VulkanSwapchain
     {
     public:
-        void Create(const Types::Vector2<Types::UInt32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
+        void Create(const Types::Vector2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
         void CreateSyncObjects(VulkanDevice& device);
 
         void Reset();
 
         vk::SwapchainKHR& GetSwapchain();
         vk::Extent2D& GetExtent();
-        vk::Image& GetImage(Types::UInt32 index);
-        Types::UInt32 GetImageCount();
-        Types::UInt32 GetInFlightFrames();
-        Types::UInt32 GetCurrentFrame();
+        vk::Image& GetImage(Types::UI32 index);
+        Types::UI32 GetImageCount();
+        Types::UI32 GetInFlightFrames();
+        Types::UI32 GetCurrentFrame();
         std::vector<VulkanFrameSyncObjects>& GetSyncFrames();
 
-        void PresentFrame(VulkanRenderer& renderer, VulkanQueues& queues, Types::UInt32 imageIndex);
+        void PresentFrame(VulkanRenderer& renderer, VulkanQueues& queues, Types::UI32 imageIndex);
 
         void IncrementFrame();
 
@@ -82,9 +82,9 @@ namespace Mosaic::Internal::Rendering
 
         vk::PresentModeKHR mPresentMode;
 
-        Types::UInt32 mImageCount;
-        Types::UInt32 mFramesInFlight;
-        Types::UInt32 mCurrentFrame;
+        Types::UI32 mImageCount;
+        Types::UI32 mFramesInFlight;
+        Types::UI32 mCurrentFrame;
 
         std::vector<vk::Image> mSwapchainImages;
         std::vector<VulkanFrameSyncObjects> mSyncFrames;

@@ -124,9 +124,9 @@ namespace Mosaic::Internal::Rendering
         vk::InstanceCreateInfo instanceInfo = {
             {},
             &appInfo,
-            static_cast<Types::UInt32>(layers.size()),
+            static_cast<Types::UI32>(layers.size()),
             layers.data(),
-            static_cast<Types::UInt32>(extensions.size()),
+            static_cast<Types::UI32>(extensions.size()),
             extensions.data()};
 
         mInstance = vk::createInstanceUnique(instanceInfo);

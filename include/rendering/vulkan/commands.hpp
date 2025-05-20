@@ -27,15 +27,15 @@ namespace Mosaic::Internal::Rendering
     public:
         void Create(VulkanDevice& device, VulkanQueues& queues);
         void AllocateCommandBuffers(VulkanDevice& device, VulkanSwapchain& swapchain);
-        void BeginFrame(Types::UInt32 imageIndex);
-        void EndFrame(Types::UInt32 imageIndex);
-        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UInt32 imageIndex, const Types::Vector4<Types::Float32>& clear);
+        void BeginFrame(Types::UI32 imageIndex);
+        void EndFrame(Types::UI32 imageIndex);
+        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vector4<Types::F32>& clear);
 
         void Reset();
 
         void SubmitFrame(vk::Queue graphicsQueue, const VulkanFrameSubmitDescriptor& info);
 
-        vk::CommandBuffer& GetCommandBuffer(Types::UInt32 imageIndex);
+        vk::CommandBuffer& GetCommandBuffer(Types::UI32 imageIndex);
 
     private:
         vk::UniqueCommandPool mCommandPool;

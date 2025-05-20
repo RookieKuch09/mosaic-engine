@@ -23,7 +23,7 @@ namespace Mosaic::Internal::Rendering
         config.Open(mConfigPath);
 
         auto api = config.Get<std::string>("Renderer.API");
-        auto clearColour = config.Get<Types::Float32, 4>("Renderer.ClearColour", {0.0, 0.0, 0.0, 1.0});
+        auto clearColour = config.Get<Types::F32, 4>("Renderer.ClearColour", {0.0, 0.0, 0.0, 1.0});
         auto vsync = config.Get<std::string>("Renderer.VSync");
 
         if (api == "OpenGL")

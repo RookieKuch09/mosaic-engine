@@ -68,7 +68,7 @@ namespace Mosaic::Internal::Windowing
 
     void Window::CreateWindow()
     {
-        Types::UInt32 flags = 0;
+        Types::UI32 flags = 0;
 
         switch (mRenderer.mAPI)
         {
@@ -131,7 +131,7 @@ namespace Mosaic::Internal::Windowing
         mTitle = file.Get<std::string>("Window.Title");
         mFullscreen = file.Get<bool>("Window.Fullscreen", false);
         mResizable = file.Get<bool>("Window.Resizable", false);
-        auto size = file.Get<Types::UInt32, 2>("Window.Size");
+        auto size = file.Get<Types::UI32, 2>("Window.Size");
 
         mSize.X = size[0];
         mSize.Y = size[1];
@@ -147,13 +147,13 @@ namespace Mosaic::Internal::Windowing
 
     std::unordered_set<std::string> Window::GetVulkanRequiredInstanceExtensions() const
     {
-        Types::UInt32 count = 0;
+        Types::UI32 count = 0;
 
         const char* const* raw = SDL_Vulkan_GetInstanceExtensions(&count);
 
         std::unordered_set<std::string> extensions;
 
-        for (Types::UInt32 index = 0; index < count; index++)
+        for (Types::UI32 index = 0; index < count; index++)
         {
             extensions.insert(raw[index]);
         }

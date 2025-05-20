@@ -31,10 +31,10 @@ namespace Mosaic::Internal::Files
         template <typename T>
         T Get(const std::string& key, const T& fallback) const;
 
-        template <typename T, Types::UInt32 N>
+        template <typename T, Types::UI32 N>
         std::array<T, N> Get(const std::string& key, const std::array<T, N>& fallback) const;
 
-        template <typename T, Types::UInt32 N>
+        template <typename T, Types::UI32 N>
         std::array<T, N> Get(const std::string& key) const;
 
         template <typename T>
@@ -46,7 +46,7 @@ namespace Mosaic::Internal::Files
     private:
         static std::vector<std::string> SplitKey(const std::string& key);
 
-        template <typename T, Types::UInt32 N>
+        template <typename T, Types::UI32 N>
         static std::optional<std::array<T, N>> ExtractArray(const toml::node* node);
 
         std::string mFilename;

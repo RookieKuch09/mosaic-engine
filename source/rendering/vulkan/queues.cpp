@@ -12,7 +12,7 @@ namespace Mosaic::Internal::Rendering
 
         const auto families = gpu.getQueueFamilyProperties();
 
-        for (Types::UInt32 index = 0; index < families.size(); index++)
+        for (Types::UI32 index = 0; index < families.size(); index++)
         {
             const auto& props = families[index];
 
@@ -49,11 +49,11 @@ namespace Mosaic::Internal::Rendering
 
         ResolveFallbacks();
 
-        std::set<Types::UInt32> uniqueFamilies = {mGraphicsFamily.value(), mComputeFamily.value(), mTransferFamily.value(), mPresentFamily.value()};
+        std::set<Types::UI32> uniqueFamilies = {mGraphicsFamily.value(), mComputeFamily.value(), mTransferFamily.value(), mPresentFamily.value()};
 
         mQueuePriority = 1.0;
 
-        for (Types::UInt32 family : uniqueFamilies)
+        for (Types::UI32 family : uniqueFamilies)
         {
             vk::DeviceQueueCreateInfo info{};
             info.queueFamilyIndex = family;
@@ -117,22 +117,22 @@ namespace Mosaic::Internal::Rendering
         return mPresentQueue;
     }
 
-    Types::UInt32 VulkanQueues::GetGraphicsQueueFamily() const
+    Types::UI32 VulkanQueues::GetGraphicsQueueFamily() const
     {
         return mGraphicsFamily.value();
     }
 
-    Types::UInt32 VulkanQueues::GetComputeQueueFamily() const
+    Types::UI32 VulkanQueues::GetComputeQueueFamily() const
     {
         return mComputeFamily.value_or(mGraphicsFamily.value());
     }
 
-    Types::UInt32 VulkanQueues::GetTransferQueueFamily() const
+    Types::UI32 VulkanQueues::GetTransferQueueFamily() const
     {
         return mTransferFamily.value_or(mComputeFamily.value_or(mGraphicsFamily.value()));
     }
 
-    Types::UInt32 VulkanQueues::GetPresentQueueFamily() const
+    Types::UI32 VulkanQueues::GetPresentQueueFamily() const
     {
         return mPresentFamily.value_or(mGraphicsFamily.value());
     }

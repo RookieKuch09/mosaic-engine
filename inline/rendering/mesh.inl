@@ -4,24 +4,23 @@
 
 #include "application/console.hpp"
 
-#include <cstring>
-
 namespace Mosaic::Internal::Rendering
 {
     template <typename T>
-    MeshAttribute<T>::MeshAttribute(Types::UInt32 count)
+    MeshAttribute<T>::MeshAttribute(Types::UI32 count)
     {
         GetTypeData(count);
     }
 
     template <typename T>
-    void MeshAttribute<T>::GetTypeData(Types::UInt32 count)
+    void MeshAttribute<T>::GetTypeData(Types::UI32 count)
     {
-        constexpr Types::UInt32 TypeCount = AttributeInfo<T>::Count;
-        constexpr Types::UInt32 TypeSize = AttributeInfo<T>::TypeSize;
+        constexpr Types::UI32 typeCount = AttributeInfo<T>::Count;
+        constexpr Types::UI32 typeSize = AttributeInfo<T>::TypeSize;
 
         EnumType = AttributeInfo<T>::EnumType;
-        LengthBytes = TypeCount * TypeSize * count;
+        LengthBytes = typeCount * typeSize * count;
+        TypeSize = typeSize;
     }
 
     template <typename... Args>
@@ -35,7 +34,7 @@ namespace Mosaic::Internal::Rendering
         {
             (..., mAttributes.push_back(std::make_unique<MeshAttribute<Args>>(formats)));
 
-            Types::UInt32 index = 0;
+            Types::UI32 index = 0;
 
             mVertexLengthBytes = 0;
 
@@ -59,16 +58,16 @@ namespace Mosaic::Internal::Rendering
             return;
         }
 
-        constexpr Types::UInt32 NumInputs = sizeof...(Args);
+        constexpr Types::UI64 NumInputs = sizeof...(Args);
 
         if (not ValidateAttributeCount<NumInputs>())
         {
             return;
         }
 
-        std::array<Types::UInt32, NumInputs> attributeCounts = {};
+        std::array<Types::UI32, NumInputs> attributeCounts = {};
 
-        if (not ValidateAttributeData(data..., attributeCounts))
+        if (not ValidateAttributeData<Args...>(data..., attributeCounts))
         {
             return;
         }
@@ -78,35 +77,18 @@ namespace Mosaic::Internal::Rendering
             return;
         }
 
-        const Types::UInt32 vertexCount = attributeCounts[0];
+        const Types::UI32 vertexCount = attributeCounts[0];
 
         mRawData.reserve(vertexCount * mVertexLengthBytes);
 
         const auto dataTuple = std::tie(data...);
-        for (Types::UInt32 vertex = 0; vertex < vertexCount; vertex++)
+        for (Types::UI32 vertex = 0; vertex < vertexCount; vertex++)
         {
             InterleaveVertexData(vertex, std::make_index_sequence<NumInputs>{}, dataTuple);
         }
     }
 
-    bool Mesh::CanSetVertexData() const
-    {
-        if (not mRawData.empty())
-        {
-            Console::LogWarning("Mesh vertex data cannot be redefined");
-            return false;
-        }
-
-        if (mAttributes.empty())
-        {
-            Console::LogWarning("Mesh attributes must be defined prior to providing vertex data");
-            return false;
-        }
-
-        return true;
-    }
-
-    template <Types::UInt32 NumInputs>
+    template <Types::UI64 NumInputs>
     bool Mesh::ValidateAttributeCount() const
     {
         if (NumInputs != mAttributes.size())
@@ -118,11 +100,11 @@ namespace Mosaic::Internal::Rendering
         return true;
     }
 
-    template <typename... Args, Types::UInt32 NumInputs>
-    bool Mesh::ValidateAttributeData(const std::vector<Args>&... data, std::array<Types::UInt32, NumInputs>& outCounts)
+    template <typename... Args>
+    bool Mesh::ValidateAttributeData(const std::vector<Args>&... data, std::array<Types::UI32, sizeof...(Args)>& outCounts)
     {
         bool mismatch = false;
-        Types::UInt32 index = 0;
+        Types::UI32 index = 0;
 
         auto check = [&](const auto& vec)
         {
@@ -150,8 +132,8 @@ namespace Mosaic::Internal::Rendering
                 return;
             }
 
-            Types::UInt32 vectorSizeBytes = vec.size() * sizeof(ArrayType);
-            Types::UInt32 attributeLengthBytes = mAttributes[index]->LengthBytes;
+            Types::UI32 vectorSizeBytes = vec.size() * sizeof(ArrayType);
+            Types::UI32 attributeLengthBytes = mAttributes[index]->LengthBytes;
 
             if (vectorSizeBytes % attributeLengthBytes != 0)
             {
@@ -169,11 +151,11 @@ namespace Mosaic::Internal::Rendering
         return not mismatch;
     }
 
-    template <Types::UInt32 NumInputs>
-    bool Mesh::ValidateVertexCounts(const std::array<Types::UInt32, NumInputs>& counts)
+    template <Types::UI64 NumInputs>
+    bool Mesh::ValidateVertexCounts(const std::array<Types::UI32, NumInputs>& counts)
     {
-        const Types::UInt32 vertexCount = counts[0];
-        for (Types::UInt32 i = 1; i < counts.size(); ++i)
+        const Types::UI32 vertexCount = counts[0];
+        for (Types::UI32 i = 1; i < counts.size(); ++i)
         {
             if (vertexCount != counts[i])
             {
@@ -184,20 +166,20 @@ namespace Mosaic::Internal::Rendering
         return true;
     }
 
-    template <size_t... Is, typename... Args>
-    void Mesh::InterleaveVertexData(Types::UInt32 vertex, std::index_sequence<Is...>, const std::tuple<const std::vector<Args>&...>& dataTuple)
+    template <Types::UI64... NumInputs, typename... Args>
+    void Mesh::InterleaveVertexData(Types::UI32 vertex, std::index_sequence<NumInputs...>, const std::tuple<const std::vector<Args>&...>& dataTuple)
     {
         (void)std::initializer_list<int>{
             ([&]
              {
-            const auto& vec = std::get<Is>(dataTuple);
-            const auto& attribute = mAttributes[Is];
+            const auto& vec = std::get<NumInputs>(dataTuple);
+            const auto& attribute = mAttributes[NumInputs];
 
             using VecT = std::decay_t<decltype(vec)>;
             using ElemT = typename VecT::value_type;
             constexpr bool isRaw = std::is_arithmetic_v<ElemT>;
 
-            Types::UInt32 elementCount = attribute->LengthBytes / sizeof(AttributeInfo<ElemT>::Type);
+            Types::UI32 elementCount = attribute->LengthBytes / sizeof(typename AttributeInfo<ElemT>::Type);
 
             if constexpr (isRaw)
             {

@@ -33,7 +33,7 @@ namespace Mosaic::Internal::Rendering
 
         void AwaitFences(VulkanSwapchain& swapchain);
 
-        Types::UInt32 GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain);
+        Types::UI32 GetNextImageIndex(VulkanRenderer& renderer, VulkanSwapchain& swapchain);
 
         void WaitIdle();
 
