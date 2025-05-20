@@ -1,10 +1,9 @@
 #include <GL/glew.h>
 
+#include "application/console.hpp"
 #include "application/window.hpp"
 
 #include "rendering/opengl/renderer.hpp"
-
-#include "utilities/config.hpp"
 
 namespace Mosaic::Internal::Rendering
 {
@@ -45,15 +44,13 @@ namespace Mosaic::Internal::Rendering
 
     void OpenGLRenderer::LoadConfig()
     {
-        Files::TOMLFile file(mRenderer.mConfigPath);
+        if (not GLEW_VERSION_4_6)
+        {
+            Console::Throw("System does not support required OpenGL version (Mosaic requires 4.6 Core)");
+        }
 
-        auto version = file.Get<Types::UI32, 2>("OpenGL.Version");
-
-        mVersion.X = version[0];
-        mVersion.Y = version[1];
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, mVersion.X);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, mVersion.Y);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         switch (mRenderer.mVSync)
