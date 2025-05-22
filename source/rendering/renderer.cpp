@@ -5,7 +5,6 @@
 
 namespace Mosaic::Internal::Rendering
 {
-
     Renderer::Renderer(Windowing::Window& window, EventManager& eventManager)
         : mConfigPath(""), mBackend(nullptr), mWindow(window), mEventManager(eventManager)
     {
@@ -74,5 +73,10 @@ namespace Mosaic::Internal::Rendering
     void Renderer::Update()
     {
         mBackend->Update();
+    }
+
+    void Renderer::UpdateCommands(const std::vector<RendererCommandWrapper>& newCommands)
+    {
+        mCommands.clear();
     }
 }

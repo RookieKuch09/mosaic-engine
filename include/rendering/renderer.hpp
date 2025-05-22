@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rendering/commands.hpp"
+
 #include "utilities/numerics.hpp"
 #include "utilities/vector.hpp"
 
@@ -52,8 +54,27 @@ namespace Mosaic::Internal::Rendering
         void LoadConfig();
         void Create();
         void Update();
+        void ManageCommands();
 
-        Types::Vector4<Types::F32> mClearColour;
+        void UpdateCommands(const std::vector<RendererCommandWrapper>& newCommands);
+
+        // virtual void CreateBuffer() = 0;
+        // virtual void DestroyBuffer() = 0;
+
+        // virtual void CreatePipeline() = 0;
+        // virtual void DestroyPipeline() = 0;
+
+        // virtual void CreateShader() = 0;
+        // virtual void DestroyShader() = 0;
+
+        // virtual void ChangeRenderTarget() = 0;
+        // virtual void ActivatePipeline() = 0;
+        // virtual void UploadMaterial() = 0;
+        // virtual void Render() = 0;
+
+        std::vector<RendererCommandWrapper> mCommands;
+
+        Types::Vec4<Types::F32> mClearColour;
 
         RendererAPI mAPI;
         RendererVSync mVSync;

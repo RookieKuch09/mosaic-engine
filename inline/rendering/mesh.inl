@@ -7,13 +7,15 @@
 namespace Mosaic::Internal::Rendering
 {
     template <typename T>
-    MeshAttribute<T>::MeshAttribute(Types::UI32 count)
+    VertexAttribute<T>::VertexAttribute(Types::UI32 count)
     {
+        Count = count;
+
         GetTypeData(count);
     }
 
     template <typename T>
-    void MeshAttribute<T>::GetTypeData(Types::UI32 count)
+    void VertexAttribute<T>::GetTypeData(Types::UI32 count)
     {
         constexpr Types::UI32 typeCount = AttributeInfo<T>::Count;
         constexpr Types::UI32 typeSize = AttributeInfo<T>::TypeSize;
@@ -23,31 +25,12 @@ namespace Mosaic::Internal::Rendering
         TypeSize = typeSize;
     }
 
-    template <typename... Args>
-    void Mesh::SetLayout(const MeshAttribute<Args>&... formats)
+    template <typename T>
+    VertexFormat& VertexFormat::AddAttribute(VertexAttribute<T>&& attribute)
     {
-        if (not mAttributes.empty())
-        {
-            Console::LogWarning("Mesh attributes cannot be redefined");
-        }
-        else
-        {
-            (..., mAttributes.push_back(std::make_unique<MeshAttribute<Args>>(formats)));
+        mAttributes.push_back(attribute);
 
-            Types::UI32 index = 0;
-
-            mVertexLengthBytes = 0;
-
-            for (auto& attribute : mAttributes)
-            {
-                attribute->OffsetBytes = mVertexLengthBytes;
-                attribute->Index = index;
-
-                mVertexLengthBytes += attribute->LengthBytes;
-
-                index++;
-            }
-        }
+        return *this;
     }
 
     template <typename... Args>
@@ -82,6 +65,7 @@ namespace Mosaic::Internal::Rendering
         mRawData.reserve(vertexCount * mVertexLengthBytes);
 
         const auto dataTuple = std::tie(data...);
+
         for (Types::UI32 vertex = 0; vertex < vertexCount; vertex++)
         {
             InterleaveVertexData(vertex, std::make_index_sequence<NumInputs>{}, dataTuple);
@@ -91,7 +75,7 @@ namespace Mosaic::Internal::Rendering
     template <Types::UI64 NumInputs>
     bool Mesh::ValidateAttributeCount() const
     {
-        if (NumInputs != mAttributes.size())
+        if (NumInputs != mFormat->mAttributes.size())
         {
             Console::LogWarning("Attribute count and vertex data input count do not match");
             return false;
@@ -115,7 +99,7 @@ namespace Mosaic::Internal::Rendering
                 return;
             }
 
-            if (index >= mAttributes.size())
+            if (index >= mFormat->mAttributes.size())
             {
                 Console::LogWarning("Too much data provided for mesh");
                 mismatch = true;
@@ -125,7 +109,7 @@ namespace Mosaic::Internal::Rendering
             using ArrayType = std::decay_t<decltype(vec[0])>;
             using BaseType = AttributeInfo<ArrayType>::Type;
 
-            if (AttributeInfo<BaseType>::EnumType != mAttributes[index]->EnumType)
+            if (AttributeInfo<BaseType>::EnumType != mFormat->mAttributes[index].EnumType)
             {
                 Console::LogWarning("Type mismatch between attribute and provided data");
                 mismatch = true;
@@ -133,7 +117,7 @@ namespace Mosaic::Internal::Rendering
             }
 
             Types::UI32 vectorSizeBytes = vec.size() * sizeof(ArrayType);
-            Types::UI32 attributeLengthBytes = mAttributes[index]->LengthBytes;
+            Types::UI32 attributeLengthBytes = mFormat->mAttributes[index].LengthBytes;
 
             if (vectorSizeBytes % attributeLengthBytes != 0)
             {
@@ -173,13 +157,13 @@ namespace Mosaic::Internal::Rendering
             ([&]
              {
             const auto& vec = std::get<NumInputs>(dataTuple);
-            const auto& attribute = mAttributes[NumInputs];
+            const auto& attribute = mFormat->mAttributes[NumInputs];
 
             using VecT = std::decay_t<decltype(vec)>;
             using ElemT = typename VecT::value_type;
             constexpr bool isRaw = std::is_arithmetic_v<ElemT>;
 
-            Types::UI32 elementCount = attribute->LengthBytes / sizeof(typename AttributeInfo<ElemT>::Type);
+            Types::UI32 elementCount = attribute.LengthBytes / sizeof(typename AttributeInfo<ElemT>::Type);
 
             if constexpr (isRaw)
             {
@@ -191,7 +175,7 @@ namespace Mosaic::Internal::Rendering
             {
                 const auto& value = vec[vertex];
                 const std::byte* bytes = reinterpret_cast<const std::byte*>(&value);
-                mRawData.insert(mRawData.end(), bytes, bytes + attribute->LengthBytes);
+                mRawData.insert(mRawData.end(), bytes, bytes + attribute.LengthBytes);
             }
 
             return 0; }(), 0)...};

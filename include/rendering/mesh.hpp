@@ -3,12 +3,11 @@
 #include "utilities/numerics.hpp"
 #include "utilities/vector.hpp"
 
-#include <memory>
 #include <vector>
 
 namespace Mosaic::Internal::Rendering
 {
-    enum class AttributeType
+    enum class VertexAttributeType
     {
         F32,
         F64,
@@ -23,127 +22,137 @@ namespace Mosaic::Internal::Rendering
     };
 
     template <TypeConcepts::Numeric T>
-    struct AttributeTypeMapping
+    struct VertexAttributeTypeMapping
     {
     };
 
     template <>
-    struct AttributeTypeMapping<Types::F32>
+    struct VertexAttributeTypeMapping<Types::F32>
     {
-        static constexpr AttributeType Value = AttributeType::F32;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::F64>
-    {
-        static constexpr AttributeType Value = AttributeType::F64;
+        static constexpr VertexAttributeType Value = VertexAttributeType::F32;
     };
 
     template <>
-    struct AttributeTypeMapping<Types::I8>
+    struct VertexAttributeTypeMapping<Types::F64>
     {
-        static constexpr AttributeType Value = AttributeType::I8;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::I16>
-    {
-        static constexpr AttributeType Value = AttributeType::I16;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::UI32>
-    {
-        static constexpr AttributeType Value = AttributeType::UI32;
-    };
-    template <>
-    struct AttributeTypeMapping<Types::I64>
-    {
-        static constexpr AttributeType Value = AttributeType::I64;
+        static constexpr VertexAttributeType Value = VertexAttributeType::F64;
     };
 
     template <>
-    struct AttributeTypeMapping<Types::UI8>
+    struct VertexAttributeTypeMapping<Types::I8>
     {
-        static constexpr AttributeType Value = AttributeType::UI8;
+        static constexpr VertexAttributeType Value = VertexAttributeType::I8;
     };
+
     template <>
-    struct AttributeTypeMapping<Types::UI16>
+    struct VertexAttributeTypeMapping<Types::I16>
     {
-        static constexpr AttributeType Value = AttributeType::UI16;
+        static constexpr VertexAttributeType Value = VertexAttributeType::I16;
     };
+
     template <>
-    struct AttributeTypeMapping<Types::I32>
+    struct VertexAttributeTypeMapping<Types::UI32>
     {
-        static constexpr AttributeType Value = AttributeType::UI32;
+        static constexpr VertexAttributeType Value = VertexAttributeType::UI32;
     };
+
     template <>
-    struct AttributeTypeMapping<Types::UI64>
+    struct VertexAttributeTypeMapping<Types::I64>
     {
-        static constexpr AttributeType Value = AttributeType::UI64;
+        static constexpr VertexAttributeType Value = VertexAttributeType::I64;
+    };
+
+    template <>
+    struct VertexAttributeTypeMapping<Types::UI8>
+    {
+        static constexpr VertexAttributeType Value = VertexAttributeType::UI8;
+    };
+
+    template <>
+    struct VertexAttributeTypeMapping<Types::UI16>
+    {
+        static constexpr VertexAttributeType Value = VertexAttributeType::UI16;
+    };
+
+    template <>
+    struct VertexAttributeTypeMapping<Types::I32>
+    {
+        static constexpr VertexAttributeType Value = VertexAttributeType::UI32;
+    };
+
+    template <>
+    struct VertexAttributeTypeMapping<Types::UI64>
+    {
+        static constexpr VertexAttributeType Value = VertexAttributeType::UI64;
     };
 
     template <typename T>
     struct AttributeInfo
     {
-        static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
+        static constexpr VertexAttributeType EnumType = VertexAttributeTypeMapping<T>::Value;
         static constexpr Types::UI32 Count = 1;
         static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
-    template <TypeConcepts::Numeric T>
-    struct AttributeInfo<Types::Vector<T, 2>>
+    template <TypeConcepts::Numeric T, Types::UI32 N>
+    struct AttributeInfo<Types::Vec<T, N>>
     {
-        static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UI32 Count = 2;
+        static constexpr VertexAttributeType EnumType = VertexAttributeTypeMapping<T>::Value;
+        static constexpr Types::UI32 Count = N;
         static constexpr Types::UI32 TypeSize = sizeof(T);
         using Type = T;
     };
 
-    template <TypeConcepts::Numeric T>
-    struct AttributeInfo<Types::Vector<T, 3>>
-    {
-        static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UI32 Count = 3;
-        static constexpr Types::UI32 TypeSize = sizeof(T);
-        using Type = T;
-    };
-
-    template <TypeConcepts::Numeric T>
-    struct AttributeInfo<Types::Vector<T, 4>>
-    {
-        static constexpr AttributeType EnumType = AttributeTypeMapping<T>::Value;
-        static constexpr Types::UI32 Count = 4;
-        static constexpr Types::UI32 TypeSize = sizeof(T);
-        using Type = T;
-    };
-
-    class MeshAttributeBase
+    class VertexAttributeBase
     {
     protected:
-        AttributeType EnumType;
+        VertexAttributeType EnumType;
         Types::UI32 LengthBytes;
         Types::UI32 OffsetBytes;
         Types::UI32 Index;
         Types::UI32 TypeSize;
+        Types::UI32 Count;
 
         friend class Mesh;
     };
 
     template <typename T>
-    class MeshAttribute : public MeshAttributeBase
+    class VertexAttribute : public VertexAttributeBase
     {
     public:
-        MeshAttribute() = delete;
-        MeshAttribute(Types::UI32 count);
+        VertexAttribute() = delete;
+        VertexAttribute(Types::UI32 count);
 
     private:
         void GetTypeData(Types::UI32 count);
     };
 
+    class VertexFormat
+    {
+    public:
+        template <typename T>
+        VertexFormat& AddAttribute(VertexAttribute<T>&& attribute);
+
+        template <typename T>
+        void AddAttribute(const VertexAttribute<T>& attribute) = delete;
+
+    private:
+        std::vector<VertexAttributeBase> mAttributes;
+
+        friend class Mesh;
+    };
+
+    class Buffer
+    {
+    };
+
     class Mesh
     {
     public:
-        template <typename... Args>
-        inline void SetLayout(const MeshAttribute<Args>&... formats);
+        Mesh();
+
+        void SetVertexFormat(VertexFormat& format);
 
         template <typename... Args>
         inline void SetVertexData(const std::vector<Args>&... data);
@@ -166,10 +175,13 @@ namespace Mosaic::Internal::Rendering
         template <Types::UI64... NumInputs, typename... Args>
         void InterleaveVertexData(Types::UI32 vertex, std::index_sequence<NumInputs...>, const std::tuple<const std::vector<Args>&...>& dataTuple);
 
-        std::vector<std::unique_ptr<MeshAttributeBase>> mAttributes;
+        VertexFormat* mFormat;
+
         std::vector<std::byte> mRawData;
 
         Types::UI32 mVertexLengthBytes;
+
+        bool mSubmitted;
     };
 }
 

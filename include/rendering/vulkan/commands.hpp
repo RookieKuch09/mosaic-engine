@@ -29,7 +29,7 @@ namespace Mosaic::Internal::Rendering
         void AllocateCommandBuffers(VulkanDevice& device, VulkanSwapchain& swapchain);
         void BeginFrame(Types::UI32 imageIndex);
         void EndFrame(Types::UI32 imageIndex);
-        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vector4<Types::F32>& clear);
+        void RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vec4<Types::F32>& clear);
 
         void Reset();
 

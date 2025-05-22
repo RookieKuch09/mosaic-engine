@@ -20,8 +20,9 @@ namespace Mosaic
     using Internal::EventManager;
     using Internal::Instance;
     using Internal::Rendering::Mesh;
-    using Internal::Rendering::MeshAttribute;
     using Internal::Rendering::Renderer;
+    using Internal::Rendering::VertexAttribute;
+    using Internal::Rendering::VertexFormat;
     using Internal::Windowing::Window;
     using Internal::Windowing::WindowMoveEvent;
     using Internal::Windowing::WindowResizeEvent;

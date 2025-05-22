@@ -2,11 +2,40 @@
 
 #include "application/console.hpp"
 
-#include <cstring>
-#include <sstream>
-
 namespace Mosaic::Internal::Rendering
 {
+    Mesh::Mesh()
+        : mVertexLengthBytes(0), mFormat(nullptr), mSubmitted(false)
+    {
+    }
+
+    void Mesh::SetVertexFormat(VertexFormat& format)
+    {
+        if (mFormat)
+        {
+            Console::LogWarning("Cannot rebind mesh to a new vertex format");
+        }
+        else if (format.mAttributes.empty())
+        {
+            Console::LogWarning("Cannot bind mesh to an empty vertex format");
+        }
+        else
+        {
+
+            mFormat = &format;
+
+            for (Types::UI32 i = 0; i < mFormat->mAttributes.size(); i++)
+            {
+                auto& attribute = mFormat->mAttributes[i];
+
+                attribute.Index = i;
+                attribute.OffsetBytes = mVertexLengthBytes;
+
+                mVertexLengthBytes += attribute.LengthBytes;
+            }
+        }
+    }
+
     bool Mesh::CanSetVertexData() const
     {
         if (not mRawData.empty())
@@ -15,9 +44,17 @@ namespace Mosaic::Internal::Rendering
             return false;
         }
 
-        if (mAttributes.empty())
+        if (not mFormat)
         {
-            Console::LogWarning("Mesh attributes must be defined prior to providing vertex data");
+            Console::LogWarning("Mesh must be bound to a vertex format before setting data");
+
+            return false;
+        }
+
+        if (mFormat->mAttributes.empty())
+        {
+            Console::LogWarning("Vertex attributes must be defined prior to providing vertex data");
+
             return false;
         }
 
@@ -26,67 +63,42 @@ namespace Mosaic::Internal::Rendering
 
     void Mesh::Submit()
     {
-        Console::LogNotice("Mesh::Submit called");
-        Console::LogNotice("Number of attributes: {}", static_cast<int>(mAttributes.size()));
-        Console::LogNotice("Raw vertex data size: {} bytes", static_cast<int>(mRawData.size()));
-        Console::LogNotice("Vertex length (stride): {} bytes", static_cast<int>(mVertexLengthBytes));
-
-        if (mVertexLengthBytes == 0 || mRawData.empty())
+        if (mSubmitted)
         {
-            Console::LogNotice("No vertex data to display.");
+            Console::LogWarning("Mesh already submitted, cannot resubmit");
+
             return;
         }
 
-        const Types::UI32 vertexCount = mRawData.size() / mVertexLengthBytes;
-
-        for (Types::UI32 i = 0; i < vertexCount; ++i)
+        if (mRawData.empty())
         {
-            Console::LogNotice("Vertex {}:", i);
+            Console::LogWarning("Mesh must have valid data before being submitted");
 
-            const std::byte* vertexPtr = mRawData.data() + i * mVertexLengthBytes;
+            return;
+        }
 
-            for (const auto& attr : mAttributes)
-            {
-                std::ostringstream ss;
-                const std::byte* attrPtr = vertexPtr + attr->OffsetBytes;
+        if (not mFormat)
+        {
+            Console::LogWarning("Mesh must be bound to a vertex format before submitting");
 
-                Types::UI32 count = attr->LengthBytes / attr->TypeSize; // assume tightly packed
-                ss << "[";
-                for (Types::UI32 c = 0; c < count; ++c)
-                {
-                    if (c > 0)
-                        ss << ", ";
+            return;
+        }
 
-                    switch (attr->EnumType)
-                    {
-                        case AttributeType::F32:
-                        {
-                            float value;
-                            std::memcpy(&value, attrPtr + c * sizeof(float), sizeof(float));
-                            ss << value;
-                            break;
-                        }
-                        case AttributeType::UI32:
-                        {
-                            Types::UI32 value;
-                            std::memcpy(&value, attrPtr + c * sizeof(Types::UI32), sizeof(Types::UI32));
-                            ss << value;
-                            break;
-                        }
-                        // Add other cases here if needed
-                        default:
-                            ss << "?";
-                            break;
-                    }
-                }
-                ss << "]";
+        if (mFormat->mAttributes.empty())
+        {
+            Console::LogError("Vertex attributes must be defined before submitting");
 
-                Console::LogNotice("  [Attr {} @ offset {}]: {}", attr->Index, attr->OffsetBytes, ss.str());
-            }
+            return;
         }
     }
 
     void Mesh::Unsubmit()
     {
+        if (not mSubmitted)
+        {
+            Console::LogWarning("Mesh already desubmitted");
+
+            return;
+        }
     }
 }

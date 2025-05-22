@@ -33,7 +33,7 @@ namespace Mosaic::Internal::Rendering
 
         void ResizeCallback(const Windowing::WindowResizeEvent& event);
 
-        Types::Vector2<Types::UI32> mWindowSize;
+        Types::Vec2<Types::UI32> mWindowSize;
         VulkanInstance mInstance;
         VulkanPhysicalDevice mPhysicalDevice;
         VulkanDevice mDevice;

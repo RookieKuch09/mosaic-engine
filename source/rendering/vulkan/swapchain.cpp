@@ -110,7 +110,7 @@ namespace Mosaic::Internal::Rendering
         return mRenderPass.get();
     }
 
-    void VulkanSwapchain::Create(const Types::Vector2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
+    void VulkanSwapchain::Create(const Types::Vec2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync)
     {
         auto presentModes = physicalDevice.Get().getSurfacePresentModesKHR(surface.GetHandle());
         auto capabilities = physicalDevice.Get().getSurfaceCapabilitiesKHR(surface.GetHandle());

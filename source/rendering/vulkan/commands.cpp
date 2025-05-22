@@ -35,7 +35,7 @@ namespace Mosaic::Internal::Rendering
         commandBuffer->end();
     }
 
-    void VulkanCommandSystem::RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vector4<Types::F32>& clear)
+    void VulkanCommandSystem::RecordCommands(VulkanRenderPass& renderPass, VulkanFramebuffer& framebuffer, VulkanSwapchain& swapchain, Types::UI32 imageIndex, const Types::Vec4<Types::F32>& clear)
     {
         auto& commandBuffer = mCommandBuffers[imageIndex];
 

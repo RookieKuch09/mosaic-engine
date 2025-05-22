@@ -6,14 +6,14 @@ namespace Mosaic::Internal::Types
 {
 
     template <TypeConcepts::Numeric T, UI32 Length>
-    class Vector
+    class Vec
     {
     public:
         using ValueType = T;
     };
 
     template <TypeConcepts::Numeric T>
-    class Vector<T, 2>
+    class Vec<T, 2>
     {
     public:
         using ValueType = T;
@@ -28,20 +28,20 @@ namespace Mosaic::Internal::Types
             T Elements[2];
         };
 
-        Vector();
+        Vec();
 
-        Vector(T all);
-        Vector(T x, T y);
+        Vec(T all);
+        Vec(T x, T y);
 
-        Vector(const Vector& other);
-        Vector(Vector&& other) noexcept;
+        Vec(const Vec& other);
+        Vec(Vec&& other) noexcept;
 
-        Vector<T, 2>& operator=(const Vector& other);
-        Vector<T, 2>& operator=(Vector&& other) noexcept;
+        Vec<T, 2>& operator=(const Vec& other);
+        Vec<T, 2>& operator=(Vec&& other) noexcept;
     };
 
     template <TypeConcepts::Numeric T>
-    class Vector<T, 3>
+    class Vec<T, 3>
     {
     public:
         using ValueType = T;
@@ -56,20 +56,20 @@ namespace Mosaic::Internal::Types
             T Elements[3];
         };
 
-        Vector();
+        Vec();
 
-        Vector(T all);
-        Vector(T x, T y, T z);
+        Vec(T all);
+        Vec(T x, T y, T z);
 
-        Vector(const Vector& other);
-        Vector(Vector&& other) noexcept;
+        Vec(const Vec& other);
+        Vec(Vec&& other) noexcept;
 
-        Vector<T, 3>& operator=(const Vector& other);
-        Vector<T, 3>& operator=(Vector&& other) noexcept;
+        Vec<T, 3>& operator=(const Vec& other);
+        Vec<T, 3>& operator=(Vec&& other) noexcept;
     };
 
     template <TypeConcepts::Numeric T>
-    class Vector<T, 4>
+    class Vec<T, 4>
     {
     public:
         using ValueType = T;
@@ -84,26 +84,26 @@ namespace Mosaic::Internal::Types
             T Elements[4];
         };
 
-        Vector();
+        Vec();
 
-        Vector(T all);
-        Vector(T x, T y, T z, T w);
+        Vec(T all);
+        Vec(T x, T y, T z, T w);
 
-        Vector(const Vector& other);
-        Vector(Vector&& other) noexcept;
+        Vec(const Vec& other);
+        Vec(Vec&& other) noexcept;
 
-        Vector<T, 4>& operator=(const Vector& other);
-        Vector<T, 4>& operator=(Vector&& other) noexcept;
+        Vec<T, 4>& operator=(const Vec& other);
+        Vec<T, 4>& operator=(Vec&& other) noexcept;
     };
 
     template <typename T>
-    using Vector2 = Vector<T, 2>;
+    using Vec2 = Vec<T, 2>;
 
     template <typename T>
-    using Vector3 = Vector<T, 3>;
+    using Vec3 = Vec<T, 3>;
 
     template <typename T>
-    using Vector4 = Vector<T, 4>;
+    using Vec4 = Vec<T, 4>;
 }
 
 #include "utilities/vector.inl"

@@ -158,8 +158,8 @@ namespace Mosaic::Internal
 
     struct CursorMovementEvent
     {
-        Types::Vector2<Types::F32> ScreenSpacePosition;
-        Types::Vector2<Types::F32> DeviceCoordPosition;
+        Types::Vec2<Types::F32> ScreenSpacePosition;
+        Types::Vec2<Types::F32> DeviceCoordPosition;
     };
 
     struct ButtonState
@@ -185,7 +185,7 @@ namespace Mosaic::Internal
         std::unordered_map<InputKey, ButtonState> mKeyStates;
         std::unordered_map<InputMouseButton, ButtonState> mMouseButtonStates;
 
-        Types::Vector2<Types::UI32> mWindowSize;
+        Types::Vec2<Types::UI32> mWindowSize;
 
         void OnWindowResize(const Windowing::WindowResizeEvent& event);
 

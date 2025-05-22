@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendering/commands.hpp"
 #include "utilities/rect.hpp"
 
 namespace Mosaic::Internal::Windowing
@@ -9,7 +10,7 @@ namespace Mosaic::Internal::Windowing
 
 namespace Mosaic::Internal::Rendering
 {
-    class Renderer;
+    class RendererCommandManager;
 }
 
 namespace Mosaic::Internal::Rendering
@@ -17,12 +18,13 @@ namespace Mosaic::Internal::Rendering
     class RenderTarget
     {
     public:
-        RenderTarget(Windowing::Window& window, Rendering::Renderer& renderer, const Types::Rectangle& rect);
+        RenderTarget(Types::Rectangle&& area, RendererCommandManager& renderer);
 
     private:
+        void Render();
+
         Types::Rectangle mArea;
 
-        Windowing::Window& mWindow;
-        Rendering::Renderer& mRenderer;
+        RendererCommandManager& mRendererCommandManager;
     };
 }

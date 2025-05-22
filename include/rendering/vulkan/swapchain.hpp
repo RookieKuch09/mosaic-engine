@@ -59,7 +59,7 @@ namespace Mosaic::Internal::Rendering
     class VulkanSwapchain
     {
     public:
-        void Create(const Types::Vector2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
+        void Create(const Types::Vec2<Types::UI32>& size, VulkanDevice& device, VulkanPhysicalDevice& physicalDevice, VulkanSurface& surface, RendererVSync vsync);
         void CreateSyncObjects(VulkanDevice& device);
 
         void Reset();

@@ -97,8 +97,8 @@ namespace Mosaic::Internal
         Types::F32 posx = (normx * 2.0f) - 1.0f;
         Types::F32 posy = 1.0f - (normy * 2.0f);
 
-        Types::Vector2<float> screenPos(x, y);
-        Types::Vector2<float> devicePos(posx, posy);
+        Types::Vec2<float> screenPos(x, y);
+        Types::Vec2<float> devicePos(posx, posy);
 
         CursorMovementEvent movement{.ScreenSpacePosition = screenPos, .DeviceCoordPosition = devicePos};
         mEventManager.Emit<CursorMovementEvent>(movement);
